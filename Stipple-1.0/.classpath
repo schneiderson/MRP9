@@ -7,6 +7,5 @@
 	<classpathentry kind="lib" path="lib/StippleGen_2.jar"/>
 	<classpathentry kind="lib" path="lib/toxiclibs_p5.jar"/>
 	<classpathentry kind="lib" path="lib/toxiclibscore.jar"/>
-	<classpathentry kind="lib" path="/Users/cambolbro/eclipse/vecmath-1.5.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
