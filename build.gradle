@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+}
+
+group 'unimaas'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.locationtech.jts', name: 'jts-core', version: '1.16.0'
+    compile group: 'org.apache.xmlgraphics', name: 'batik-all', version: '1.10'
+    compile group: 'javax.vecmath', name: 'vecmath', version: '1.5.2'
+    compile group: 'org.processing', name: 'core', version: '3.3.7'
+}
