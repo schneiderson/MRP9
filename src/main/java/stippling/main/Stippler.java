@@ -25,6 +25,10 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
+import org.locationtech.jts.triangulate.quadedge.QuadEdgeSubdivision;
+
+import svg.Edge;
+import svg.SVGUtil;
 
 //-----------------------------------------------------------------------------
 
@@ -37,7 +41,7 @@ public class Stippler
 	//-----------------------------------------
 
 	/** Number of stipple dots (some will be eliminated as whitespace). */
-	public static int numDots = 5000; 
+	public static int numDots = 1000; 
 		
 	/** Sample rate. */
 	public static int overSample = 1;
@@ -46,10 +50,10 @@ public class Stippler
 	public static int cellBuffer = 128;  //100;  
 	
 	/** Number of relaxation passes. */
-	public static int numPasses = 2;
+	public static int numPasses = 50;
 
 	/** Dot multiple for output. */
-	public static double dotSize = 1.0;
+	public static double dotSize = 0.2;
 
 	/** Difference in dot size. */
 	public static double dotRange = 2.0;
@@ -102,6 +106,9 @@ public class Stippler
 	/** Vividsolutions voronoi diagram builder. */
 	protected VoronoiDiagramBuilder builder = null;
 	
+	/** Triangulation of VD. */
+	protected QuadEdgeSubdivision triang = null;
+	
 	/** Geometry factory for constructing VD. */
 	protected GeometryFactory geomFactory = new GeometryFactory();
 
@@ -129,7 +136,7 @@ public class Stippler
 	public Stippler(final Stipple app)
 	{
 		this.app = app;
-		loadImage("src/res/robot-2.jpg");
+		loadImage("res/robot-2.jpg");
 	}
 	
 	//-------------------------------------------------------------------------
@@ -237,7 +244,7 @@ public class Stippler
 			polys = null;
 			createInitialDots();
 
-			imagePath = new String(filePath);
+			imagePath = new String(file.getName());
 			imageName = new String(imagePath);
 			while (imageName.contains("/"))
 				imageName = imageName.substring(imageName.indexOf('/') + 1);
@@ -483,6 +490,7 @@ public class Stippler
 		
 		// Perform the triangulation
 		polys = (GeometryCollection)builder.getDiagram(geomFactory);
+		triang = (QuadEdgeSubdivision)builder.getSubdivision();
 	}
 
 	//-------------------------------------------------------------------------
@@ -674,6 +682,7 @@ public class Stippler
 			exportSVG(true);
 			exportSVG(false);
 			exportRaw();
+			//exportMesh();
 			System.out.println("Done.");
 		}
 	}
@@ -1098,6 +1107,64 @@ public class Stippler
   
 	//-------------------------------------------------------------------------
 	
+	String createOutputPath(String ending)
+	{
+		String path = new String(imageName);
+		
+		// Remove image extension
+		while (path.length() > 1 && path.charAt(path.length()-1) != '.')
+			path = path.substring(0, path.length()-1);
+		path = path.substring(0, path.length()-1);
+	
+		// Add settings and .svg extension
+		path += "-" + (numDots < 1000 ? numDots : (numDots / 1000 + "k"));
+		path += "-x" + numPasses;
+		path += ending;
+		
+		// Move from res to out
+		path = "out/" + path;
+		
+		return path;
+	}
+	
+	void exportMesh()
+	{
+		ArrayList<Edge> edges = new ArrayList<Edge>();
+		String path = createOutputPath("-mesh.svg");
+		
+		System.out.println("Saving SVG mesh to " + path + "...");
+		
+		// outputs triangulation as mesh
+		List<Coordinate[]> triangles = triang.getTriangleCoordinates(false);
+		
+		for (Coordinate[] triangle : triangles)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				edges.add(new Edge(triangle[i], triangle[i+1]));
+			}
+		}
+		
+		// outputs Voronoi Diagram mesh instead of triangulation
+		
+//		int numPolys = polys.getNumGeometries();
+//
+//		for (int i = 0; i < numPolys; i++)
+//		{
+//			Geometry poly = polys.getGeometryN(i);
+//			Coordinate[] coords = poly.getCoordinates();
+//			
+//			for (int j = 0; j < coords.length-1; j++)
+//			{
+//				edges.add(new Edge(coords[j], coords[j+1]));
+//			}
+//		}
+		
+
+        SVGUtil svgwrite = new SVGUtil(edges, null);
+        svgwrite.createSVG(path);
+	}
+
 	/**
 	 * @param bw
 	 */
@@ -1105,30 +1172,14 @@ public class Stippler
 	void exportSVG(final boolean bw)
 	{
 		String str;
-		
+		String path = createOutputPath((bw ? "-bw.svg" : "-rgb.svg"));
 		final List<String> output = new ArrayList<String>();
-
-		String path = new String(imageName);
-		
-		// Remove image extension
-		while (path.length() > 1 && path.charAt(path.length()-1) != '.')
-			path = path.substring(0, path.length()-1);
-		path = path.substring(0, path.length()-1);
-		
-		// Add settings and .svg extension
-		path += "-" + (numDots < 1000 ? numDots : (numDots / 1000 + "k"));
-		path += "-x" + overSample;
-		path += (bw ? "-bw" : "-rgb");
-		path += ".svg";
-		
-		// Move from src/res to out
-		path = "out/" + path;
 		
 		System.out.println("Saving SVG " + (bw ? "B&W " : "RGBA") + " to " + path + "...");
 
  		try
     	{
- 	   	  	final File file = new File("src/res/svg_header.txt");
+ 	   	  	final File file = new File("res/svg_header.txt");
     		if (!file.exists())
     		{
     			System.out.println("Couldn't find header file.");
@@ -1211,23 +1262,8 @@ public class Stippler
 	void exportRaw()
 	{
 		String str;
-		
+		String path = createOutputPath(".txt");
 		final List<String> output = new ArrayList<String>();
-
-		String path = new String(imageName);
-		
-		// Remove image extension
-		while (path.length() > 1 && path.charAt(path.length()-1) != '.')
-			path = path.substring(0, path.length()-1);
-		path = path.substring(0, path.length()-1);
-		
-		// Add settings and .svg extension
-		path += "-" + (numDots < 1000 ? numDots : (numDots / 1000 + "k"));
-		path += "-x" + overSample;
-		path += ".txt";		
-		
-		// Move from src/res to out
-		path = "out/" + path;
 
 		System.out.println("Saving raw data to " + path + "...");
  		

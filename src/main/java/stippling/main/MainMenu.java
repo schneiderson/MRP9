@@ -53,7 +53,13 @@ public class MainMenu extends JMenuBar
 	    menuItem.setMnemonic(KeyEvent.VK_S);
 	    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.META_MASK));
 	    menuItem.addActionListener(al);
-	    menu.add(menuItem);    
+	    menu.add(menuItem);  
+	    
+	    menuItem = new JMenuItem("Save Mesh");
+	    menuItem.setMnemonic(KeyEvent.VK_M);
+	    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, ActionEvent.META_MASK));
+	    menuItem.addActionListener(al);
+	    menu.add(menuItem); 
 
 	    menu.addSeparator();
 	    

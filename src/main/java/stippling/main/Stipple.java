@@ -125,12 +125,17 @@ public class Stipple implements ActionListener, ItemListener
 				stippler.loadDots(path);
 			}
 		}
-		else if (source.getText().equals("Save"))
+		else if (source.getText().equals("Save Dots"))
 		{
 			stippler.setDotRadii();
 			stippler.exportSVG(true);
 			stippler.exportSVG(false);
 			stippler.exportRaw();
+			System.out.println("Done.");
+		}
+		else if (source.getText().equals("Save Mesh"))
+		{
+			stippler.exportMesh();
 			System.out.println("Done.");
 		}
 		else if (source.getText().equals("Start"))
