@@ -1,5 +1,6 @@
 package svg;
 
+import knotwork.Edge;
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.util.SVGConstants;
@@ -136,14 +137,14 @@ public class SVGUtil {
 
             // read lines from SVG
             for(int i = 0; i < children.getLength(); i++){
-                if(children.item(i).getNodeName() == "line"){
+                if(children.item(i).getNodeName().equals("line")){
                     NamedNodeMap attribs = children.item(i).getAttributes();
 
                     HashMap<String, Double> coor = new HashMap<>();
 
                     for(int j = 0; j < attribs.getLength(); j++){
                         String name = attribs.item(j).getNodeName();
-                        if(name == "x1" || name == "y1" || name == "x2" || name == "y2"){
+                        if(name.equals("x1") || name.equals("y1") || name.equals("x2") || name.equals("y2")){
                             coor.put(name, Double.parseDouble(attribs.item(j).getNodeValue()));
                         }
                     }

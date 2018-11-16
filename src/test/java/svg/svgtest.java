@@ -1,8 +1,7 @@
 package svg;
 
 import org.locationtech.jts.geom.Coordinate;
-import svg.Edge;
-import svg.SVGUtil;
+import knotwork.Edge;
 
 import java.util.ArrayList;
 
