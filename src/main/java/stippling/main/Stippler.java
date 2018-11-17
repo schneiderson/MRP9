@@ -27,7 +27,7 @@ import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import org.locationtech.jts.triangulate.quadedge.QuadEdgeSubdivision;
 
-import svg.Edge;
+import knotwork.Edge;
 import svg.SVGUtil;
 
 //-----------------------------------------------------------------------------
