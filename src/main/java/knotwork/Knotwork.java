@@ -1,8 +1,6 @@
 package knotwork;
 
-import org.locationtech.jts.geom.Coordinate;
 import svg.SVGUtil;
-
 import java.util.ArrayList;
 
 public class Knotwork {
@@ -14,18 +12,21 @@ public class Knotwork {
         SVGUtil svgutil = new SVGUtil(null, null);
         svgutil.readFromSvg(path);
 
-        ArrayList<Edge> edges = svgutil.edges;
-        ArrayList<Coordinate> nodes = svgutil.nodes;
+        KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);
 
-        ArrayList<Crossing> crossings = new ArrayList<>();
+        KnotNode node = null;
+        try{
+            node = graph.getInitialKnotNode();
+        } catch(Exception e){
 
-        edges.forEach(x -> { crossings.add(new Crossing(x)); });
+        }
 
-        crossings.forEach(x -> { System.out.println(
-                "Edge: " + x.edge +  " " +
-                "Crossing at: " + x.pos + " norm vector angle: " + x.getNormVectorAngleDeg(false)); });
+        Crossing cross = graph.getCorrespondingCrossing(node);
+        ArrayList<Edge> incidentEdges = graph.getAdjacentEdges(cross, node);
 
+        System.out.println(incidentEdges.size());
 
+        incidentEdges.forEach(x -> System.out.println(x.midpoint));
 
 
 

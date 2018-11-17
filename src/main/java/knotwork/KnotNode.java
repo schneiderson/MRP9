@@ -3,8 +3,7 @@ package knotwork;
 import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
-
-import static java.lang.Math.PI;
+import util.AngleUtil;
 
 public class KnotNode {
 
@@ -18,6 +17,7 @@ public class KnotNode {
         // rotate from norm vector by 45 degree
         Double rotation = Angle.toRadians(45);
 
+        // if it's a right node, rotate by -45, otherwise 45 degrees
         if(right){
             vec = normVec.rotate(-rotation);
         } else{
@@ -65,11 +65,7 @@ public class KnotNode {
         if(normalized){
             return vector.angle();
         } else{
-            Double angle = vector.angle();
-            if(angle < 0){
-                angle = 2 * PI + angle;
-            }
-            return angle;
+            return AngleUtil.getAngleRadiansRescaled(vector.angle());
         }
     }
 
@@ -80,7 +76,6 @@ public class KnotNode {
      * @return angle in degree
      */
     public Double getAngleDegree(Boolean normalized){
-        Double tmp = getAngleRadians(normalized);
-        return Angle.toDegrees(tmp);
+        return Angle.toDegrees(getAngleRadians(normalized));
     }
 }

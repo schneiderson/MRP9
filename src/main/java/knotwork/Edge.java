@@ -24,6 +24,10 @@ public class Edge {
         return false;
     }
 
+    public Boolean isIncidentToVertex(Coordinate node){
+        return (c1.equals(node) || c2.equals(node));
+    }
+
     public String toString() {
         return "C1: " + c1.toString() + ", C2: " + c2.toString() + ", M: " + midpoint.toString();
     }
