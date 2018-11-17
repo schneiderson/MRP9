@@ -123,14 +123,16 @@ public class KnotworkGraph {
             Crossing cross = getCorrespondingCrossing(node);
             ArrayList<Edge> incidentEdges = getAdjacentEdges(cross, node);
 
-            // TODO: order the edges by their angle
-            // depending on weather we look at a right or left node
+            // TODO: implement mercat
+            // 1. order the incident edges by their angle
+            // (depending on weather we look at a right or left node, clock- or counter clock wise)
 
-            // add next node to controlSet
+            // 2. look for an (unvisited, opposite direction) node on the incident edge
 
-            // repeat until the controlSet is closed
+            // 3. if we found a node, add next (outgoing) node to controlSet and mark nodePair as visited
 
-            
+            // repeat until the controlSet list is closed (1st element == last element)
+
         }
 
         return controlSet;
