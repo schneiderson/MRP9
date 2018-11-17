@@ -15,11 +15,7 @@ public class Knotwork {
         KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);
 
         KnotNode node = null;
-        try{
-            node = graph.getInitialKnotNode();
-        } catch(Exception e){
-
-        }
+        node = graph.getInitialKnotNode();
 
         Crossing cross = graph.getCorrespondingCrossing(node);
         ArrayList<Edge> incidentEdges = graph.getAdjacentEdges(cross, node);

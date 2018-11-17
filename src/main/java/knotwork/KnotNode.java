@@ -9,9 +9,9 @@ public class KnotNode {
 
     private Coordinate pos;
     private Vector2D vector;
-    private Boolean right;
+    private boolean right;
 
-    public static KnotNode createFromNormVector(Coordinate pos, Vector2D normVec, Boolean right){
+    public static KnotNode createFromNormVector(Coordinate pos, Vector2D normVec, boolean right){
         Vector2D vec;
 
         // rotate from norm vector by 45 degree
@@ -27,23 +27,23 @@ public class KnotNode {
         return new KnotNode(pos, vec, right);
     }
 
-    public KnotNode(Coordinate pos, Coordinate to, Boolean right){
+    public KnotNode(Coordinate pos, Coordinate to, boolean right){
         this.pos = pos;
         this.vector = new Vector2D(pos, to);
         this.right = right;
     }
 
-    public KnotNode(Coordinate pos, Vector2D vector, Boolean right){
+    public KnotNode(Coordinate pos, Vector2D vector, boolean right){
         this.pos = pos;
         this.vector = vector;
         this.right = right;
     }
 
-    public Boolean isRightNode(){
+    public boolean isRightNode(){
         return right;
     }
 
-    public Boolean isLeftNode(){
+    public boolean isLeftNode(){
         return !right;
     }
 
@@ -61,7 +61,7 @@ public class KnotNode {
      * @param normalized If set to 'true' angle is normalized to be in the range ( -Pi, Pi ].
      * @return angle in radian
      */
-    public Double getAngleRadians(Boolean normalized){
+    public Double getAngleRadians(boolean normalized){
         if(normalized){
             return vector.angle();
         } else{
@@ -75,7 +75,12 @@ public class KnotNode {
      * @param normalized If set to 'true' angle is normalized to be in the range ( -180, 180 ].
      * @return angle in degree
      */
-    public Double getAngleDegree(Boolean normalized){
+    public Double getAngleDegree(boolean normalized){
         return Angle.toDegrees(getAngleRadians(normalized));
+    }
+
+
+    public boolean equals(KnotNode other) {
+        return (vector.equals(other.vector) && pos.equals(other.pos) && right == other.right);
     }
 }

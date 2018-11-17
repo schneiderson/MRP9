@@ -5,7 +5,7 @@ import org.locationtech.jts.math.Vector2D;
 
 public class KnotNodePair {
 
-    private Boolean visited = false;
+    private boolean visited = false;
     public KnotNode node1;
     public KnotNode node2;
 
@@ -28,7 +28,7 @@ public class KnotNodePair {
         visited = true;
     }
 
-    public Boolean isVisited(){
+    public boolean isVisited(){
         return visited;
     }
 

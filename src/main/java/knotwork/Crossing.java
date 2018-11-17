@@ -52,7 +52,7 @@ public class Crossing {
      * @param normalized If set to 'true' angle is normalized to be in the range ( -Pi, Pi ].
      * @return angle in radian
      */
-    public Double getNormVectorAngleRad(Boolean normalized){
+    public Double getNormVectorAngleRad(boolean normalized){
         if(normalized){
             return normVector.angle();
         } else{
@@ -66,7 +66,7 @@ public class Crossing {
      * @param normalized If set to 'true' angle is normalized to be in the range ( -180, 180 ].
      * @return angle in degree
      */
-    public Double getNormVectorAngleDeg(Boolean normalized){
+    public Double getNormVectorAngleDeg(boolean normalized){
         return Angle.toDegrees(getNormVectorAngleRad(normalized));
     }
 

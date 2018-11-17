@@ -7,11 +7,9 @@ import java.util.ArrayList;
 
 public class KnotworkGraph {
 
-    private Boolean debugOutput = true;
-
     public ArrayList<Crossing> crossings = new ArrayList<>();
-    public ArrayList<Edge> edges = new ArrayList<>();
-    public ArrayList<Coordinate> nodes = new ArrayList<>();
+    public ArrayList<Edge> edges;
+    public ArrayList<Coordinate> nodes;
 
 
     public KnotworkGraph(ArrayList<Coordinate> nodes, ArrayList<Edge> edges) {
@@ -20,22 +18,14 @@ public class KnotworkGraph {
 
         // create crossings for each edge
         edges.forEach(x -> crossings.add(new Crossing(x)));
-
-        // TODO: remove debug output
-        if (debugOutput) {
-            crossings.forEach(x -> System.out.println(
-                    "Edge: " + x.edge + " " +
-                            "Crossing at: " + x.pos + " norm vector angle: " + x.getNormVectorAngleDeg(false)));
-        }
-
     }
 
-    public KnotNode getInitialKnotNode() throws Exception {
-        if (crossings.size() > 0) {
-            return crossings.get(0).rightNodePair.node1;
-        } else {
-            throw new Exception("No crossings initialized");
+    public KnotNode getInitialKnotNode(){
+        ArrayList<KnotNodePair> unvisited = getUnvisitedNodePairs();
+        if(unvisited.size() > 0){
+            return unvisited.get(0).node1;
         }
+        return null;
     }
 
     public ArrayList<KnotNode> getAllNodes() {
@@ -58,6 +48,13 @@ public class KnotworkGraph {
         return allNodePairs;
     }
 
+    public ArrayList<KnotNodePair> getUnvisitedNodePairs(){
+        ArrayList<KnotNodePair> nodePairs = getAllNodePairs();
+        // remove nodePairs which have been visited
+        nodePairs.removeIf(knotNodePair -> knotNodePair.isVisited());
+        return nodePairs;
+    }
+
     public ArrayList<Edge> getAdjacentEdges(Crossing cross, KnotNode node) {
         // find junction first
         // to do that, create two helper vectors from midpoint to endpoint of edge
@@ -75,16 +72,6 @@ public class KnotworkGraph {
         } else {
             // different sign
             junction = cross.edge.c2;
-        }
-
-        // TODO: remove debug output
-        if(debugOutput){
-            System.out.println("Coordinate1 : " + cross.edge.c1);
-            System.out.println("Coordinate2 : " + cross.edge.c2);
-            System.out.println("Angle1 " + diffAngle1);
-            System.out.println("AngleDiff " + diffAngleNode);
-            System.out.println("Junction " + junction);
-
         }
 
         ArrayList<Edge> incidentEdges = new ArrayList<>();
@@ -112,5 +99,40 @@ public class KnotworkGraph {
             }
         }
         return matchingCrossing;
+    }
+
+    public ArrayList<ArrayList<KnotNode>> getControlSets(){
+        ArrayList<ArrayList<KnotNode>> controlSets = new ArrayList<>();
+        while(getUnvisitedNodePairs().size() > 0){
+            ArrayList<KnotNode> controlSet = runMercat();
+            if(controlSet != null && controlSet.size() > 0){
+                controlSets.add(controlSet);
+            }
+        }
+        return controlSets;
+    }
+
+    public ArrayList<KnotNode> runMercat(){
+        ArrayList<KnotNode> controlSet = new ArrayList<>();
+        KnotNode node = getInitialKnotNode();
+        // add starting node
+        controlSet.add(node);
+
+        while(controlSet.size() < 2 || controlSet.get(0).equals(controlSet.get(controlSet.size()-1))){
+
+            Crossing cross = getCorrespondingCrossing(node);
+            ArrayList<Edge> incidentEdges = getAdjacentEdges(cross, node);
+
+            // TODO: order the edges by their angle
+            // depending on weather we look at a right or left node
+
+            // add next node to controlSet
+
+            // repeat until the controlSet is closed
+
+            
+        }
+
+        return controlSet;
     }
 }

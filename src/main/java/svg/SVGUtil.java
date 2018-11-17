@@ -52,7 +52,7 @@ public class SVGUtil {
     }
 
 
-    private Boolean containsEdge(Edge edge){
+    private boolean containsEdge(Edge edge){
         for(Edge e : edges){
             if(e.equals(edge)){
                 return true;
@@ -62,7 +62,7 @@ public class SVGUtil {
     }
 
 
-    private Boolean containsNode(Coordinate node){
+    private boolean containsNode(Coordinate node){
         for(Coordinate n : nodes){
             if(n.equals(node)){
                 return true;

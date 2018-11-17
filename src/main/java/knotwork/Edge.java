@@ -17,14 +17,14 @@ public class Edge {
         return new Coordinate(Math.round((c1.x + c2.x) / 2d), Math.round((c1.y + c2.y) / 2d));
     }
 
-    public Boolean equals(Edge other) {
+    public boolean equals(Edge other) {
         if ((c1.equals(other.c1) && c2.equals(other.c2)) || (c1.equals(other.c2) && c2.equals(other.c1))) {
             return true;
         }
         return false;
     }
 
-    public Boolean isIncidentToVertex(Coordinate node){
+    public boolean isIncidentToVertex(Coordinate node){
         return (c1.equals(node) || c2.equals(node));
     }
 
