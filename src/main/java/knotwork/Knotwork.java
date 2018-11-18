@@ -1,6 +1,8 @@
 package knotwork;
 
 import svg.SVGUtil;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Knotwork {
@@ -15,14 +17,17 @@ public class Knotwork {
         KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);
 
         KnotNode node = null;
-        node = graph.getInitialKnotNode();
+        ArrayList<ArrayList<KnotNode>> controlSets = graph.getControlSets();
 
-        Crossing cross = graph.getCorrespondingCrossing(node);
-        ArrayList<Edge> incidentEdges = graph.getAdjacentEdges(cross, node);
+        System.out.println("Number of controlSets " + controlSets.size());
 
-        System.out.println(incidentEdges.size());
+        for (int i = 0; controlSets.size() > i; i++) {
+            System.out.println("Control set " + (1+i));
+            for (KnotNode kN : controlSets.get(i)){
+                System.out.println("node: " + kN.getPos() + " vector: " + kN.getVector());
+            }
+        }
 
-        incidentEdges.forEach(x -> System.out.println(x.midpoint));
 
 
 

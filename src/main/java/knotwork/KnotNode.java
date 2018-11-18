@@ -29,13 +29,13 @@ public class KnotNode {
 
     public KnotNode(Coordinate pos, Coordinate to, boolean right){
         this.pos = pos;
-        this.vector = new Vector2D(pos, to);
+        this.vector = new Vector2D(pos, to).normalize();
         this.right = right;
     }
 
     public KnotNode(Coordinate pos, Vector2D vector, boolean right){
         this.pos = pos;
-        this.vector = vector;
+        this.vector = vector.normalize();
         this.right = right;
     }
 

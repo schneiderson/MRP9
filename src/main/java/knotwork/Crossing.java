@@ -43,7 +43,7 @@ public class Crossing {
             normVec = Vector2D.create(edge.c1, edge.c2).rotate(Angle.toRadians(-90));
         }
 
-        return normVec;
+        return normVec.normalize();
     }
 
     /**
