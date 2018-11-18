@@ -2,8 +2,12 @@ package knotwork;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
+import util.AngleUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
+
+import static java.lang.Math.abs;
 
 public class KnotworkGraph {
 
@@ -20,6 +24,7 @@ public class KnotworkGraph {
         edges.forEach(x -> crossings.add(new Crossing(x)));
     }
 
+
     public KnotNode getInitialKnotNode(){
         ArrayList<KnotNodePair> unvisited = getUnvisitedNodePairs();
         if(unvisited.size() > 0){
@@ -27,6 +32,7 @@ public class KnotworkGraph {
         }
         return null;
     }
+
 
     public ArrayList<KnotNode> getAllNodes() {
         ArrayList<KnotNode> allNodes = new ArrayList<>();
@@ -39,6 +45,7 @@ public class KnotworkGraph {
         return allNodes;
     }
 
+
     public ArrayList<KnotNodePair> getAllNodePairs() {
         ArrayList<KnotNodePair> allNodePairs = new ArrayList<>();
         for (Crossing crossing : crossings) {
@@ -48,6 +55,7 @@ public class KnotworkGraph {
         return allNodePairs;
     }
 
+
     public ArrayList<KnotNodePair> getUnvisitedNodePairs(){
         ArrayList<KnotNodePair> nodePairs = getAllNodePairs();
         // remove nodePairs which have been visited
@@ -55,26 +63,12 @@ public class KnotworkGraph {
         return nodePairs;
     }
 
+
     public ArrayList<Edge> getAdjacentEdges(Crossing cross, KnotNode node) {
-        // find junction first
-        // to do that, create two helper vectors from midpoint to endpoint of edge
-        Vector2D hv1 = new Vector2D(cross.edge.midpoint, cross.edge.c1);
-
-        // calculate the difference in angle from helper vectors to norm vector
-        Double diffAngle1 = cross.normVector.angleTo(hv1);
-        Double diffAngleNode = cross.normVector.angleTo(node.getVector());
-
-        Coordinate junction;
-        // if difference in angle of node vector and helper vector have the same sign they point in the "same" direction
-        if(diffAngle1 * diffAngleNode >= 0){
-            // same sign
-            junction = cross.edge.c1;
-        } else {
-            // different sign
-            junction = cross.edge.c2;
-        }
+        Coordinate junction = getNextJunction(node);
 
         ArrayList<Edge> incidentEdges = new ArrayList<>();
+
         // now get all edges incident to this junction (except for this one)
         for (Edge edge : edges) {
             if(edge.equals(cross.edge)){
@@ -87,7 +81,28 @@ public class KnotworkGraph {
         return incidentEdges;
     }
 
-    public Crossing getCorrespondingCrossing(KnotNode node) {
+    public Coordinate getNextJunction(KnotNode node){
+        Crossing cross = getCrossingForNode(node);
+        // to find correct junction, create a helper vector from midpoint to endpoint of edge
+        Vector2D hv1 = new Vector2D(cross.edge.midpoint, cross.edge.c1);
+
+        // calculate the difference in angle from helper vector to norm vector
+        Double diffAngle1 = cross.normVector.angleTo(hv1);
+        Double diffAngleNode = cross.normVector.angleTo(node.getVector());
+
+        Coordinate junction;
+        // if difference in angle of node vector and helper vector have the same sign they point in the "same" direction
+        if(diffAngle1 * diffAngleNode >= 0){
+            // same sign
+            junction = cross.edge.c1;
+        } else {
+            // different sign
+            junction = cross.edge.c2;
+        }
+        return junction;
+    }
+
+    public Crossing getCrossingForNode(KnotNode node) {
         Crossing matchingCrossing = null;
         for (Crossing crossing : crossings) {
             if (crossing.rightNodePair.node1 == node
@@ -101,6 +116,28 @@ public class KnotworkGraph {
         return matchingCrossing;
     }
 
+    public Crossing getCrossingForEdge(Edge edge) {
+        Crossing matchingCrossing = null;
+        for (Crossing crossing : crossings){
+            if (crossing.edge.equals(edge)){
+                matchingCrossing = crossing;
+                break;
+            }
+        }
+        return matchingCrossing;
+    }
+
+    public KnotNodePair getKnotNodePairFromNode(KnotNode node){
+        KnotNodePair nodePair = null;
+        ArrayList<KnotNodePair> allNodePairs = getAllNodePairs();
+        for(KnotNodePair nP : allNodePairs){
+            if(nP.node1.equals(node) || nP.node2.equals(node)){
+                nodePair = nP;
+            }
+        }
+        return nodePair;
+    }
+
     public ArrayList<ArrayList<KnotNode>> getControlSets(){
         ArrayList<ArrayList<KnotNode>> controlSets = new ArrayList<>();
         while(getUnvisitedNodePairs().size() > 0){
@@ -112,29 +149,98 @@ public class KnotworkGraph {
         return controlSets;
     }
 
-    public ArrayList<KnotNode> runMercat(){
+
+    private ArrayList<KnotNode> runMercat(){
         ArrayList<KnotNode> controlSet = new ArrayList<>();
         KnotNode node = getInitialKnotNode();
+
         // add starting node
         controlSet.add(node);
 
-        while(controlSet.size() < 2 || controlSet.get(0).equals(controlSet.get(controlSet.size()-1))){
+        // mark this nodePair as visited
+        getKnotNodePairFromNode(node).visit();
 
-            Crossing cross = getCorrespondingCrossing(node);
-            ArrayList<Edge> incidentEdges = getAdjacentEdges(cross, node);
+        // repeat until the controlSet list is closed (1st element == last element)
+        while(controlSet.size() < 2 || !controlSet.get(0).equals(controlSet.get(controlSet.size() - 1))){
+            KnotNode nextNode = getNextNode(node);
+            if(nextNode == null){
+                break;
+            }
 
-            // TODO: implement mercat
-            // 1. order the incident edges by their angle
-            // (depending on weather we look at a right or left node, clock- or counter clock wise)
-
-            // 2. look for an (unvisited, opposite direction) node on the incident edge
-
-            // 3. if we found a node, add next (outgoing) node to controlSet and mark nodePair as visited
-
-            // repeat until the controlSet list is closed (1st element == last element)
-
+            controlSet.add(nextNode);
+            node = nextNode;
         }
 
         return controlSet;
+    }
+
+    /**
+     * Finds the next node based on the current node
+     * (basically the core of the mercat algorithm)
+     *
+     * @param node currentNode in the path
+     * @return nextNode in the path
+     */
+    private KnotNode getNextNode(KnotNode node){
+        KnotNode newNode = null;
+        Crossing cross = getCrossingForNode(node);
+        ArrayList<Edge> incidentEdges = getAdjacentEdges(cross, node);
+
+
+        // sort incident edges by angle relative to current edge (increasing)
+        Coordinate junction = getNextJunction(node);
+        Vector2D baseVec = new Vector2D(junction, node.getPos());
+        incidentEdges.sort((e1, e2) -> {
+            Vector2D edgeVecE1 = new Vector2D(junction, e1.midpoint);
+            Vector2D edgeVecE2 = new Vector2D(junction, e2.midpoint);
+            Double angleE1 = AngleUtil.getAngleRadiansRescaled(baseVec.angleTo(edgeVecE1));
+            Double angleE2 = AngleUtil.getAngleRadiansRescaled(baseVec.angleTo(edgeVecE2));
+
+            if(angleE1 == angleE2){
+                return 0;
+            }
+            return (angleE1 < angleE2) ? -1 : 1;
+        });
+
+
+        // if node is right -> clockwise (increasing angle)
+        // if node is left -> counter-clock-wise (decreasing angle)
+        if(node.isLeftNode()){
+            Collections.reverse(incidentEdges);
+        }
+
+
+        // get next unvisited nodePair
+        KnotNodePair nodePair = null;
+
+        for (Edge incidentEdge : incidentEdges) {
+            Crossing crossing = getCrossingForEdge(incidentEdge);
+            // nodePair must be opposite orientation of current node (if right, then left... etc.)
+            if(node.isLeftNode() && !crossing.rightNodePair.isVisited()){
+                nodePair = crossing.rightNodePair;
+            }
+            if(node.isRightNode() && !crossing.leftNodePair.isVisited()) {
+                nodePair = crossing.leftNodePair;
+            }
+        }
+
+
+        if(nodePair != null){
+
+            // get node pointing away from junction
+            Vector2D juncVec = new Vector2D(junction, nodePair.node1.getPos());
+            Double angle1 = juncVec.angleTo(nodePair.node1.getVector());
+            Double angle2 = juncVec.angleTo(nodePair.node2.getVector());
+            if(abs(angle1) < abs(angle2)){
+                newNode = nodePair.node1;
+            } else {
+                newNode = nodePair.node2;
+            }
+
+            // mark nodePair as visited
+            nodePair.visit();
+        }
+
+        return newNode;
     }
 }
