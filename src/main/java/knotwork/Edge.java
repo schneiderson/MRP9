@@ -31,4 +31,8 @@ public class Edge {
     public String toString() {
         return "C1: " + c1.toString() + ", C2: " + c2.toString() + ", M: " + midpoint.toString();
     }
+
+    public Double getLength() {
+        return c1.distance(c2);
+    }
 }
