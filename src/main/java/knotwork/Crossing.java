@@ -23,8 +23,8 @@ public class Crossing {
 
         normVector = getNormVector(edge);
 
-        KnotNode firstLeftNode = KnotNode.createFromNormVector(pos, normVector, false);
-        KnotNode firstRightNode = KnotNode.createFromNormVector(pos, normVector, true);
+        KnotNode firstLeftNode = KnotNode.createFromNormVector(pos, normVector, false, this);
+        KnotNode firstRightNode = KnotNode.createFromNormVector(pos, normVector, true, this);
 
         leftNodePair = new KnotNodePair(firstLeftNode);
         rightNodePair = new KnotNodePair(firstRightNode);

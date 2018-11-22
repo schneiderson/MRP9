@@ -21,7 +21,11 @@ public class KnotNodePair {
         Double rotation = Angle.toRadians(180);
         Vector2D newVec = node1.getVector().rotate(rotation);
 
-        this.node2 = new KnotNode(node1.getPos(), newVec, node1.isRightNode());
+        this.node2 = new KnotNode(node1.getPos(), newVec, node1.isRightNode(), node1.getCrossing());
+    }
+
+    public Crossing getCrossing(){
+        return node1.getCrossing();
     }
 
     public void visit(){

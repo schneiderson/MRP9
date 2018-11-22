@@ -10,8 +10,9 @@ public class KnotNode {
     private Coordinate pos;
     private Vector2D vector;
     private boolean right;
+    private Crossing crossing;
 
-    public static KnotNode createFromNormVector(Coordinate pos, Vector2D normVec, boolean right){
+    public static KnotNode createFromNormVector(Coordinate pos, Vector2D normVec, boolean right, Crossing crossing){
         Vector2D vec;
 
         // rotate from norm vector by 45 degree
@@ -24,17 +25,19 @@ public class KnotNode {
             vec = normVec.rotate(rotation);
         }
 
-        return new KnotNode(pos, vec, right);
+        return new KnotNode(pos, vec, right, crossing);
     }
 
-    public KnotNode(Coordinate pos, Coordinate to, boolean right){
+    public KnotNode(Coordinate pos, Coordinate to, boolean right, Crossing crossing){
         this.pos = pos;
+        this.crossing = crossing;
         this.vector = new Vector2D(pos, to).normalize();
         this.right = right;
     }
 
-    public KnotNode(Coordinate pos, Vector2D vector, boolean right){
+    public KnotNode(Coordinate pos, Vector2D vector, boolean right, Crossing crossing){
         this.pos = pos;
+        this.crossing = crossing;
         this.vector = vector.normalize();
         this.right = right;
     }
@@ -54,6 +57,8 @@ public class KnotNode {
     public Coordinate getPos() {
         return pos;
     }
+
+    public Crossing getCrossing() { return crossing; }
 
     /**
      * Returns the angle of the vector in radian
