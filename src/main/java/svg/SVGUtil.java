@@ -1,6 +1,8 @@
 package svg;
 
 import knotwork.Edge;
+import knotwork.curve.CubicBezier;
+import knotwork.curve.Curve;
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.util.SVGConstants;
@@ -23,6 +25,7 @@ public class SVGUtil {
 
     public ArrayList<Edge> edges = new ArrayList<Edge>();
     public ArrayList<Coordinate> nodes = new ArrayList<Coordinate>();
+    public ArrayList<ArrayList<Curve>> curveLists;
 
     public SVGUtil(ArrayList<Edge> edges, ArrayList<Coordinate> nodes){
         if(edges != null){
@@ -36,6 +39,13 @@ public class SVGUtil {
             this.nodes = nodes;
         } else {
             getNodesFromEdges(this.edges);
+        }
+    }
+
+    public SVGUtil(ArrayList<Edge> edges, ArrayList<Coordinate> nodes, ArrayList<ArrayList<Curve>> curveLists) {
+        this(edges, nodes);
+        if (curveLists != null){
+            this.curveLists = curveLists;
         }
     }
 
@@ -90,24 +100,47 @@ public class SVGUtil {
             // get the root element (the svg element)
             Element svgRoot = doc.getDocumentElement();
 
-            // set the width and height attribute on the root svg element
-            svgRoot.setAttributeNS(null, "width", Double.toString(Math.ceil(x_max + 10)));
-            svgRoot.setAttributeNS(null, "height", Double.toString(Math.ceil(y_max + 10)));
 
             // create the line for each edge
             for (Edge e: edges) {
-
                 Element line = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                line.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:rgb(0,0,0);stroke-width:1");
                 line.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(e.c1.x));
                 line.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(e.c1.y));
                 line.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(e.c2.x));
                 line.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(e.c2.y));
 
-                line.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:rgb(0,0,0);stroke-width:1");
-
                 // attach the line to the svg root element
                 svgRoot.appendChild(line);
             }
+
+            // create curves between knot nodes:
+            for (ArrayList<Curve> curveList: this.curveLists){
+                for (Curve curve : curveList){
+                    CubicBezier cbCurve = curve.getCubicBezierPoints();
+
+                    Element curvePath = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
+
+                    curvePath.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
+                            "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                                    "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
+                                    cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
+                                    cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
+                    );
+
+                    curvePath.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, "red");
+                    curvePath.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, "transparent");
+
+                    // attach the curve to the svg root element
+                    svgRoot.appendChild(curvePath);
+                }
+            }
+
+
+            // set the width and height attribute on the root svg element:
+            svgRoot.setAttributeNS(null, "width", Double.toString(Math.ceil(x_max * 2)));
+            svgRoot.setAttributeNS(null, "height", Double.toString(Math.ceil(y_max * 2)));
+
 
             // write svg file
             OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(path)));

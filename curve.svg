@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="text/ecmascript" width="1200.0" zoomAndPan="magnify" contentStyleType="text/css" height="1200.0" preserveAspectRatio="xMidYMid meet" version="1.0">
+<line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="300.0" x2="300.0" y1="300.0"/>
+<line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="300.0" y1="300.0"/>
+<line y2="300.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="300.0" y1="300.0"/>
+<path fill="transparent" d="M300.0,450.0 C87.86796564403573,237.86796564403576 237.86796564403573,87.86796564403576 450.0,300.0" stroke="red"/>
+<path fill="transparent" d="M450.0,300.0 C662.1320343559643,512.1320343559643 449.9999999999999,25.73593128807147 450.0,450.0" stroke="red"/>
+<path fill="transparent" d="M450.0,450.0 C450.0000000000001,874.2640687119285 87.86796564403576,662.1320343559643 300.0,450.0" stroke="red"/>
+<path fill="transparent" d="M300.0,450.0 C512.1320343559643,237.86796564403573 237.86796564403576,512.1320343559643 450.0,300.0" stroke="red"/>
+<path fill="transparent" d="M450.0,300.0 C662.1320343559643,87.86796564403573 874.2640687119285,450.00000000000006 450.0,450.0" stroke="red"/>
+<path fill="transparent" d="M450.0,450.0 C25.73593128807147,449.99999999999994 512.1320343559643,662.1320343559643 300.0,450.0" stroke="red"/>
+</svg>

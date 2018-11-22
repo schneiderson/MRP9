@@ -1,5 +1,7 @@
 package knotwork;
 
+import knotwork.curve.CubicBezier;
+import knotwork.curve.Curve;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
 import util.AngleUtil;
@@ -14,6 +16,9 @@ public class KnotworkGraph {
     public ArrayList<Crossing> crossings = new ArrayList<>();
     public ArrayList<Edge> edges;
     public ArrayList<Coordinate> nodes;
+    public ArrayList<ArrayList<KnotNode>> controlSets;
+
+    public ArrayList<ArrayList<Curve>> curveLists;
 
 
     public KnotworkGraph(ArrayList<Coordinate> nodes, ArrayList<Edge> edges) {
@@ -22,8 +27,37 @@ public class KnotworkGraph {
 
         // create crossings for each edge
         edges.forEach(x -> crossings.add(new Crossing(x)));
+
+        // create control sets:
+        this.controlSets = this.getControlSets();
+
+        // create curve list:
+        this.curveLists = this.createCurveLists();
     }
 
+    public boolean hasEqualSizeControlSetsAndCurveLists(){
+        return (curveLists.size() == controlSets.size());
+    }
+
+    private ArrayList<ArrayList<Curve>> createCurveLists(){
+        curveLists = new ArrayList<>();
+        for (ArrayList<KnotNode> knotNodeList : controlSets) {
+            ArrayList<Curve> curveList = new ArrayList<>();
+            for (int i = 0; i < knotNodeList.size(); i++) {
+                int j = i + 1;
+                if (i == knotNodeList.size() - 1){
+                    j = 0;
+                }
+                KnotNode knotNode2 = new KnotNode(knotNodeList.get(j));
+                curveList.add(new CubicBezier(
+                        knotNodeList.get(i),
+                        knotNode2
+                        ));
+            }
+            curveLists.add(curveList);
+        }
+       return curveLists;
+    }
 
     public KnotNode getInitialKnotNode(){
         ArrayList<KnotNodePair> unvisited = getUnvisitedNodePairs();

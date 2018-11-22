@@ -42,6 +42,18 @@ public class KnotNode {
         this.right = right;
     }
 
+    public KnotNode(KnotNode knotNode){
+        /*
+        * Creates copy of KnotNode
+        * [Except for the Crossing object]
+        * Also inverts the vector (multiplying by -1)
+        * */
+        this.pos = (Coordinate) knotNode.pos.clone();
+        this.right = knotNode.right;
+        this.crossing = knotNode.crossing;
+        this.vector = knotNode.vector.multiply(-1);
+    }
+
     public boolean isRightNode(){
         return right;
     }
