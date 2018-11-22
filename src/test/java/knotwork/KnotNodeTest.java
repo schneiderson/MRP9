@@ -13,6 +13,7 @@ public class KnotNodeTest {
     }
 
 
+
     private static void testAngles(boolean norm){
         System.out.println("\n-------------");
         System.out.println("Test Angles");

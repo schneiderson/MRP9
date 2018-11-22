@@ -5,10 +5,8 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
 import util.AngleUtil;
 
-public class KnotNode {
+public class KnotNode extends BaseNode {
 
-    private Coordinate pos;
-    private Vector2D vector;
     private boolean right;
     private Crossing crossing;
 
@@ -29,16 +27,14 @@ public class KnotNode {
     }
 
     public KnotNode(Coordinate pos, Coordinate to, boolean right, Crossing crossing){
-        this.pos = pos;
+        super(pos, new Vector2D(pos, to).normalize());
         this.crossing = crossing;
-        this.vector = new Vector2D(pos, to).normalize();
         this.right = right;
     }
 
     public KnotNode(Coordinate pos, Vector2D vector, boolean right, Crossing crossing){
-        this.pos = pos;
+        super(pos, vector.normalize());
         this.crossing = crossing;
-        this.vector = vector.normalize();
         this.right = right;
     }
 
@@ -62,42 +58,10 @@ public class KnotNode {
         return !right;
     }
 
-    public Vector2D getVector(){
-        return vector;
-    }
-
-    public Coordinate getPos() {
-        return pos;
-    }
-
     public Crossing getCrossing() { return crossing; }
-
-    /**
-     * Returns the angle of the vector in radian
-     *
-     * @param normalized If set to 'true' angle is normalized to be in the range ( -Pi, Pi ].
-     * @return angle in radian
-     */
-    public Double getAngleRadians(boolean normalized){
-        if(normalized){
-            return vector.angle();
-        } else{
-            return AngleUtil.getAngleRadiansRescaled(vector.angle());
-        }
-    }
-
-    /**
-     * Returns the angle of the vector in degree
-     *
-     * @param normalized If set to 'true' angle is normalized to be in the range ( -180, 180 ].
-     * @return angle in degree
-     */
-    public Double getAngleDegree(boolean normalized){
-        return Angle.toDegrees(getAngleRadians(normalized));
-    }
 
 
     public boolean equals(KnotNode other) {
-        return (vector.equals(other.vector) && pos.equals(other.pos) && right == other.right);
+        return (this.vector.equals(other.vector) && this.pos.equals(other.pos) && right == other.right);
     }
 }

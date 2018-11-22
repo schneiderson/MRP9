@@ -15,6 +15,7 @@ public class Crossing {
     public KnotNodePair rightNodePair;
     public Vector2D normVector;
     public Edge edge;
+    public int breakpoint = 0;
 
 
     public Crossing(Edge edge){
@@ -30,6 +31,49 @@ public class Crossing {
         rightNodePair = new KnotNodePair(firstRightNode);
     }
 
+    public void setBreakpoint(int type)
+    {
+        if (type == 0 || type == 1 || type == 2)
+        {this.breakpoint = type;}
+    }
+
+    //Creates meta point if the crossing is marked as a break point
+    public BaseNode getMetaPoint(BaseNode prevNode)
+    {
+        if (this.breakpoint == 1)
+        {
+            Coordinate posMeta = this.normVector.toCoordinate();
+            Coordinate negMeta = this.normVector.rotate(180).toCoordinate();
+            double posMetaDist = posMeta.distance(prevNode.pos);
+            double negMetaDist = negMeta.distance(prevNode.pos);
+            if(posMetaDist < negMetaDist)
+            {
+                //might need code to determine which in direction to rotate
+               return new BaseNode(posMeta, this.normVector.rotate(90));
+            }
+            else
+            {
+                return new BaseNode(negMeta, this.normVector.rotate(90));
+            }
+        }
+        else if (this.breakpoint == 2)
+        {
+            Coordinate posMeta = this.normVector.rotate(90).toCoordinate();
+            Coordinate negMeta = this.normVector.rotate(180).toCoordinate();
+            double posMetaDist = posMeta.distance(prevNode.pos);
+            double negMetaDist = negMeta.distance(prevNode.pos);
+            if(posMetaDist < negMetaDist)
+            {
+                //might need code to determine which in direction to rotate
+                return new BaseNode(posMeta, this.normVector);
+            }
+            else
+            {
+                return new BaseNode(negMeta, this.normVector);
+            }
+        }
+        else {return null;}
+    }
 
     public static Vector2D getNormVector(Edge edge){
         // get absolute angle (in rad)
