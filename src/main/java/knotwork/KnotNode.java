@@ -44,6 +44,7 @@ public class KnotNode extends BaseNode {
         * [Except for the Crossing object]
         * Also inverts the vector (multiplying by -1)
         * */
+        super(knotNode.pos, knotNode.vector);
         this.pos = (Coordinate) knotNode.pos.clone();
         this.right = knotNode.right;
         this.crossing = knotNode.crossing;
