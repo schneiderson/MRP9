@@ -2,10 +2,16 @@
 <line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="300.0" x2="300.0" y1="300.0"/>
 <line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="300.0" y1="300.0"/>
 <line y2="300.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="300.0" y1="300.0"/>
-<path fill="transparent" d="M300.0,450.0 C87.86796564403573,237.86796564403576 237.86796564403573,87.86796564403576 450.0,300.0" stroke="red"/>
-<path fill="transparent" d="M450.0,300.0 C662.1320343559643,512.1320343559643 449.9999999999999,25.73593128807147 450.0,450.0" stroke="red"/>
-<path fill="transparent" d="M450.0,450.0 C450.0000000000001,874.2640687119285 87.86796564403576,662.1320343559643 300.0,450.0" stroke="red"/>
-<path fill="transparent" d="M300.0,450.0 C512.1320343559643,237.86796564403573 237.86796564403576,512.1320343559643 450.0,300.0" stroke="red"/>
-<path fill="transparent" d="M450.0,300.0 C662.1320343559643,87.86796564403573 874.2640687119285,450.00000000000006 450.0,450.0" stroke="red"/>
-<path fill="transparent" d="M450.0,450.0 C25.73593128807147,449.99999999999994 512.1320343559643,662.1320343559643 300.0,450.0" stroke="red"/>
+<line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="600.0" y1="300.0"/>
+<line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="300.0" y1="600.0"/>
+<path fill="transparent" d="M300.0,450.0 C87.87,237.87 237.87,87.87 450.0,300.0" stroke="red"/>
+<path fill="transparent" d="M450.0,300.0 C500.0,350.0 450.0,400.0 450.0,450.0" stroke="red"/>
+<path fill="transparent" d="M450.0,450.0 C450.0,500.0 400.0,550.0 450.0,600.0" stroke="red"/>
+<path fill="transparent" d="M450.0,600.0 C662.13,812.13 812.13,662.13 600.0,450.0" stroke="red"/>
+<path fill="transparent" d="M600.0,450.0 C550.0,400.0 500.0,450.0 450.0,450.0" stroke="red"/>
+<path fill="transparent" d="M450.0,450.0 C25.74,450.0 237.87,812.13 450.0,600.0" stroke="red"/>
+<path fill="transparent" d="M450.0,600.0 C500.0,550.0 550.0,500.0 600.0,450.0" stroke="red"/>
+<path fill="transparent" d="M600.0,450.0 C812.13,237.87 662.13,87.87 450.0,300.0" stroke="red"/>
+<path fill="transparent" d="M450.0,300.0 C400.0,350.0 350.0,400.0 300.0,450.0" stroke="red"/>
+<path fill="transparent" d="M300.0,450.0 C300.0,450.0 300.0,450.0 300.0,450.0" stroke="red"/>
 </svg>

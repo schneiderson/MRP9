@@ -12,13 +12,13 @@ public class Knotwork {
 
     public static void main(String[] args){
         // start with reading the edges from the svg
-        String path = "test.svg";
+        String path = "test2.svg";
         SVGUtil svgutil = new SVGUtil(null, null);
         svgutil.readFromSvg(path);
 
         KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);
 
-        System.out.println("Number of controlSets " + graph.controlSets.size() + "\n");
+        System.out.println("Number of controlSets = " + graph.controlSets.size() + "\n");
 
         for (int i = 0; graph.controlSets.size() > i; i++) {
             System.out.println("Control set " + (1 + i) + " has size " + graph.controlSets.get(i).size());
