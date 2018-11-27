@@ -9,6 +9,7 @@ import org.apache.batik.util.SVGConstants;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.locationtech.jts.geom.Coordinate;
 import org.w3c.dom.*;
+import util.MathUtil;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -25,7 +26,7 @@ public class SVGUtil {
 
     public ArrayList<Edge> edges = new ArrayList<Edge>();
     public ArrayList<Coordinate> nodes = new ArrayList<Coordinate>();
-    public ArrayList<ArrayList<Curve>> curveLists;
+    public ArrayList<ArrayList<Curve>> curveLists = new ArrayList<>();
 
     public SVGUtil(ArrayList<Edge> edges, ArrayList<Coordinate> nodes){
         if(edges != null){
@@ -85,6 +86,8 @@ public class SVGUtil {
     public void createSVG(String path){
 
         try{
+            // set up color iterator for the different curve lists:
+            Iterator<String> colors = MathUtil.cycle(new String[]{"red", "green", "blue", "yellow"});
 
             // find largest x and y coordinates
             double x_max = 0, y_max = 0;
@@ -116,6 +119,7 @@ public class SVGUtil {
 
             // create curves between knot nodes:
             for (ArrayList<Curve> curveList: this.curveLists){
+                String curveListColor = colors.next();
                 for (Curve curve : curveList){
                     CubicBezier cbCurve = curve.getCubicBezierPoints();
 
@@ -128,7 +132,7 @@ public class SVGUtil {
                                     cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
                     );
 
-                    curvePath.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, "red");
+                    curvePath.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, curveListColor);
                     curvePath.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, "transparent");
 
                     // attach the curve to the svg root element

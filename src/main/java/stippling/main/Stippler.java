@@ -1162,7 +1162,7 @@ public class Stippler
 		
 
         SVGUtil svgwrite = new SVGUtil(edges, null);
-        svgwrite.createSVG(path);
+        svgwrite.createSVG(System.getProperty("user.dir") + "/mesh_test.svg");
 	}
 
 	/**
