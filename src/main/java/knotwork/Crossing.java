@@ -1,5 +1,6 @@
 package knotwork;
 
+import com.sun.corba.se.spi.transport.CorbaAcceptor;
 import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
@@ -42,18 +43,21 @@ public class Crossing {
     {
         if (this.breakpoint == 1)
         {
-            Coordinate posMeta = this.normVector.toCoordinate();
-            Coordinate negMeta = this.normVector.rotate(180).toCoordinate();
+            Coordinate posMeta = new Coordinate(this.pos.x + this.normVector.toCoordinate().x,
+                    this.pos.y + this.normVector.toCoordinate().y);
+            Coordinate negMeta = new Coordinate(this.pos.x - this.normVector.toCoordinate().x,
+                    this.pos.y - this.normVector.toCoordinate().y);
             double posMetaDist = posMeta.distance(prevNode.pos);
             double negMetaDist = negMeta.distance(prevNode.pos);
             if(posMetaDist < negMetaDist)
             {
                 //might need code to determine which in direction to rotate
-               return new BaseNode(posMeta, this.normVector.rotate(90));
+
+               return new BaseNode(posMeta, this.normVector.rotateByQuarterCircle(1));
             }
             else
             {
-                return new BaseNode(negMeta, this.normVector.rotate(90));
+                return new BaseNode(negMeta, this.normVector.rotateByQuarterCircle(1));
             }
         }
         else if (this.breakpoint == 2)
