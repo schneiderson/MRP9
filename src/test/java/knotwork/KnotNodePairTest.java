@@ -12,7 +12,8 @@ public class KnotNodePairTest {
 
 
     private static void testAngles(){
-        KnotNode kn = new KnotNode(new Coordinate(0,0), new Coordinate(1,0), true);
+        Edge edge = new Edge(new Coordinate(0,0), new Coordinate(1,0)) ;
+        KnotNode kn = new KnotNode(new Coordinate(0,0), new Coordinate(1,0), true, new Crossing(edge));
         KnotNodePair knp = new KnotNodePair(kn);
 
         System.out.println("Original node vector angle: " + knp.node1.getAngleDegree(false));

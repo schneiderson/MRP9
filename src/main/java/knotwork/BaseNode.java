@@ -51,4 +51,10 @@ public class BaseNode
     public boolean equals(BaseNode other) {
         return (vector.equals(other.vector) && pos.equals(other.pos));
     }
+
+    @Override
+    public String toString()
+    {
+        return "Position: "+this.pos+" , Vector: "+this.vector;
+    }
 }
