@@ -1,6 +1,5 @@
 package knotwork;
 
-import com.sun.corba.se.spi.transport.CorbaAcceptor;
 import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;

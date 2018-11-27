@@ -134,6 +134,7 @@ public class SVGUtil {
 
                     curvePath.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, curveListColor);
                     curvePath.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, "transparent");
+                    curvePath.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "fill:none;");
 
                     // attach the curve to the svg root element
                     svgRoot.appendChild(curvePath);

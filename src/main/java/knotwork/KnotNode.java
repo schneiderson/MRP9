@@ -18,9 +18,9 @@ public class KnotNode extends BaseNode {
 
         // if it's a right node, rotate by -45, otherwise 45 degrees
         if(right){
-            vec = normVec.rotate(-rotation);
-        } else{
             vec = normVec.rotate(rotation);
+        } else{
+            vec = normVec.rotate(-rotation);
         }
 
         return new KnotNode(pos, vec, right, crossing);

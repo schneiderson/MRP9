@@ -239,7 +239,7 @@ public class KnotworkGraph {
 
         // if node is right -> clockwise (increasing angle)
         // if node is left -> counter-clock-wise (decreasing angle)
-        if(node.isLeftNode()){
+        if(node.isRightNode()){
             Collections.reverse(incidentEdges);
         }
 
