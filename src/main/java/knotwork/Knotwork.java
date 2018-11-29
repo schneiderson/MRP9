@@ -4,6 +4,7 @@ import jogamp.opengl.glu.nurbs.BezierArc;
 import knotwork.curve.CubicBezier;
 import knotwork.curve.Curve;
 import svg.SVGUtil;
+import mesh.VoronoiMesh;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -11,12 +12,26 @@ import java.util.ArrayList;
 public class Knotwork {
 
     public static void main(String[] args){
-        // start with reading the edges from the svg
+        
+    	/* old
+    	// start with reading the edges from the svg
         String path = "test2.svg";
         SVGUtil svgutil = new SVGUtil(null, null);
         svgutil.readFromSvg(path);
 
         KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);
+        */
+    	
+    	VoronoiMesh mesh = new VoronoiMesh();
+    	//alternative:
+    		// choose different input image path AND/OR different number of stipples (= mesh density)
+    		// default: imgPath = "res/robot-2.jpg", numDots = 1000
+    		// VoronoiMesh mesh = new VoronoiMesh("res/shaded_cube.png", 500);
+    	SVGUtil svgutil = mesh.createTriangularMesh();
+    	// alternative:
+    		// SVGUtil svgutil = mesh.createVoronoiMesh();
+    	
+    	KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);
 
         System.out.println("Number of controlSets = " + graph.controlSets.size() + "\n");
 
