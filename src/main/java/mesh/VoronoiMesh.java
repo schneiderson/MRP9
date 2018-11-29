@@ -88,8 +88,8 @@ public class VoronoiMesh {
 	}
 	
 	public void stipple(){
-		stippler.loadImage(this.imgPath);
 		stippler.numDots = this.numDots;
+		stippler.loadImage(this.imgPath);
     	stippler.start();
 	}
 }
