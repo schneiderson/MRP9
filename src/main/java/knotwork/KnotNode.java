@@ -9,7 +9,6 @@ public class KnotNode extends BaseNode {
 
     private boolean right;
     private Crossing crossing;
-    private boolean overpass;
 
     public KnotNode(Coordinate pos, Coordinate to, boolean right, Crossing crossing) {
         super(pos, new Vector2D(pos, to).normalize());
@@ -65,16 +64,19 @@ public class KnotNode extends BaseNode {
         return crossing;
     }
 
+    public KnotNodePair getPrependicularKnotNodePair(){
+        return crossing.getPerpendicularPairByNode(this);
+    }
 
     public boolean equals(KnotNode other) {
         return (this.vector.equals(other.vector) && this.pos.equals(other.pos) && right == other.right);
     }
 
-    public boolean isOverpass() {
-        return overpass;
+    public Boolean getOverpass() {
+        return crossing.getPairByNode(this).getOverpass();
     }
 
     public void setOverpass(boolean overpass) {
-        this.overpass = overpass;
+        crossing.getPairByNode(this).setOverpass(overpass);
     }
 }

@@ -8,6 +8,7 @@ public class KnotNodePair {
     private boolean visited = false;
     public KnotNode node1;
     public KnotNode node2;
+    private Boolean overpass = null;
 
     public KnotNodePair(KnotNode node1, KnotNode node2){
         this.node1 = node1;
@@ -22,6 +23,14 @@ public class KnotNodePair {
         Vector2D newVec = node1.getVector().rotate(rotation);
 
         this.node2 = new KnotNode(node1.getPos(), newVec, node1.isRightNode(), node1.getCrossing());
+    }
+
+    public Boolean getOverpass() {
+        return overpass;
+    }
+
+    public void setOverpass(Boolean overpass) {
+        this.overpass = overpass;
     }
 
     public Crossing getCrossing(){
@@ -44,5 +53,4 @@ public class KnotNodePair {
     public boolean isVisited(){
         return visited;
     }
-
 }

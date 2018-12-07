@@ -31,6 +31,15 @@ public class Crossing {
         rightNodePair = new KnotNodePair(firstRightNode);
     }
 
+    public KnotNodePair getPairByNode(KnotNode node){
+        if(leftNodePair.contains(node)){
+            return leftNodePair;
+        } else if(rightNodePair.contains(node)){
+            return rightNodePair;
+        }
+        return null;
+    }
+
     public KnotNodePair getPerpendicularPairByNode(KnotNode node){
         if(leftNodePair.contains(node)){
             return rightNodePair;
