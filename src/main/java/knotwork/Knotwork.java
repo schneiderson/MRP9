@@ -26,7 +26,7 @@ public class Knotwork {
         // or: (from svg mesh representation)
 
         SVGUtil svgutil = new SVGUtil(null, null);
-        svgutil.readFromSvg("res/test2.svg");
+        svgutil.readFromSvg("res/test5.svg");
 
         // create knotwork graph
         KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);
@@ -34,7 +34,7 @@ public class Knotwork {
         // create svg from knotwork graph
         SVGUtil svgUtilKnotwork = new SVGUtil(svgutil.edges, svgutil.nodes, graph.curveLists, graph.overpassCurveList);
         // save svg
-        svgUtilKnotwork.createSVG(System.getProperty("user.dir") + "/res/curve_2.svg", true);
+        svgUtilKnotwork.createSVG(System.getProperty("user.dir") + "/res/curve_4.svg", true);
 
 
         // Print control and curve sets/lists

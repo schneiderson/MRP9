@@ -245,7 +245,8 @@ public class KnotworkGraph {
 
     private ArrayList<KnotNode> runMercat(){
         ArrayList<KnotNode> controlSet = new ArrayList<>();
-        KnotNode node = getInitialKnotNode();
+        KnotNode initialNode = getInitialKnotNode();
+        KnotNode node = initialNode;
 
         // add starting node
         controlSet.add(node);
@@ -253,9 +254,9 @@ public class KnotworkGraph {
         // mark this nodePair as visited
         getKnotNodePairFromNode(node).visit();
 
-        // repeat until the controlSet list is closed (1st element == last element)
-        while(controlSet.size() < 2 || !controlSet.get(0).equals(controlSet.get(controlSet.size() - 1))){
-            KnotNode nextNode = getNextNode(node);
+        // repeat until the no further edges found
+        while(true){
+            KnotNode nextNode = getNextNode(initialNode, node);
             if(nextNode == null){
                 break;
             }
@@ -274,7 +275,7 @@ public class KnotworkGraph {
      * @param node currentNode in the path
      * @return nextNode in the path
      */
-    private KnotNode getNextNode(KnotNode node){
+    private KnotNode getNextNode(KnotNode initialNode, KnotNode node){
         KnotNode newNode = null;
         Crossing cross = getCrossingForNode(node);
         ArrayList<Edge> incidentEdges = getAdjacentEdges(cross, node);
@@ -298,7 +299,7 @@ public class KnotworkGraph {
 
         // if node is right -> clockwise (increasing angle)
         // if node is left -> counter-clock-wise (decreasing angle)
-        if(node.isRightNode()){
+        if(node.isLeftNode()){
             Collections.reverse(incidentEdges);
         }
 
@@ -309,11 +310,18 @@ public class KnotworkGraph {
         for (Edge incidentEdge : incidentEdges) {
             Crossing crossing = getCrossingForEdge(incidentEdge);
             // nodePair must be opposite orientation of current node (if right, then left... etc.)
-            if(node.isLeftNode() && !crossing.rightNodePair.isVisited()){
+            if(node.isLeftNode()){
                 nodePair = crossing.rightNodePair;
             }
-            if(node.isRightNode() && !crossing.leftNodePair.isVisited()) {
+            if(node.isRightNode()) {
                 nodePair = crossing.leftNodePair;
+            }
+            if(nodePair.contains(initialNode)){
+                nodePair = null;
+                break;
+            }
+            if(!nodePair.isVisited()){
+                break;
             }
         }
 
