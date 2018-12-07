@@ -7,8 +7,8 @@ import java.util.List;
 
 public abstract class Curve {
 
-    protected KnotNode knotNode1;
-    protected KnotNode knotNode2;
+    public KnotNode knotNode1;
+    public KnotNode knotNode2;
 
     public Curve(KnotNode kn1, KnotNode kn2){
         this.knotNode1 = kn1;

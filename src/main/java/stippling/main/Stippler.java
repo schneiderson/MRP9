@@ -50,7 +50,7 @@ public class Stippler
 	public static int cellBuffer = 128;  //100;  
 	
 	/** Number of relaxation passes. */
-	public static int numPasses = 50;
+	public static int numPasses = 20;
 
 	/** Dot multiple for output. */
 	public static double dotSize = 0.2;
@@ -137,6 +137,10 @@ public class Stippler
 	{
 		this.app = app;
 		loadImage("res/robot-2.jpg");
+	}
+	
+	public Stippler()
+	{
 	}
 	
 	//-------------------------------------------------------------------------
@@ -251,14 +255,16 @@ public class Stippler
 		}
 		pass = 0;
 		
-		if (app.mainView() != null)
-			app.mainView().repaint();
+		if (app != null){
+			if (app.mainView() != null)
+				app.mainView().repaint();
 
-		if (app.dotView() != null)
-			app.dotView().repaint();
-		
-		if (app.globeView() != null)
-			app.globeView().repaint();
+			if (app.dotView() != null)
+				app.dotView().repaint();
+			
+			if (app.globeView() != null)
+				app.globeView().repaint();
+		}
 
 		return loaded;
 	}
@@ -324,8 +330,10 @@ public class Stippler
 	 */
 	void createScaledImage()
 	{
-		if (source == null)
+		if (source == null){
+			System.out.println("SOURCE NOT FOUND");
 			return;
+		}
 		
 		final int sx = source.getWidth();
 		final int sy = source.getHeight();
@@ -348,8 +356,10 @@ public class Stippler
 	 */
 	void createBlurredImage()
 	{
-		if (scaled == null)
+		if (scaled == null){
+			System.out.println("SCALED NOT FOUND");
 			return;
+		}
 		
 		final int wd = scaled.getWidth();
 		final int ht = scaled.getHeight();
@@ -441,18 +451,19 @@ public class Stippler
 		setDotRadii();
 		mapToSphere();
 		
-		if (app.dotView() != null)
-		{
-			app.dotView().paintImmediately(0, 0, app.dotView().getWidth(), app.dotView().getHeight()); 
-			//app.dotView().repaint(); 
+		if (app != null){
+			if (app.dotView() != null)
+			{
+				app.dotView().paintImmediately(0, 0, app.dotView().getWidth(), app.dotView().getHeight()); 
+				//app.dotView().repaint(); 
+			}
+	
+			if (app.globeView() != null)
+			{
+				app.globeView().paintImmediately(0, 0, app.globeView().getWidth(), app.globeView().getHeight()); 
+				//app.globeView().repaint(); 
+			}
 		}
-
-		if (app.globeView() != null)
-		{
-			app.globeView().paintImmediately(0, 0, app.globeView().getWidth(), app.globeView().getHeight()); 
-			//app.globeView().repaint(); 
-		}
-
 	}
 	
 	//-------------------------------------------------------------------------
@@ -646,27 +657,29 @@ public class Stippler
 	
 		setDotRadii();
 		mapToSphere();
+		
+		if (app != null){
+			if (app.mainView() != null)
+			{
+				app.mainView().paintImmediately(0, 0, app.mainView().getWidth(), app.mainView().getHeight()); 
+				//app.mainView().repaint(); 
+			}
+		
+			if (app.dotView() != null)
+			{
+				app.dotView().paintImmediately(0, 0, app.dotView().getWidth(), app.dotView().getHeight()); 
+				//app.dotView().repaint(); 
+			}
 
-		if (app.mainView() != null)
-		{
-			app.mainView().paintImmediately(0, 0, app.mainView().getWidth(), app.mainView().getHeight()); 
-			//app.mainView().repaint(); 
-		}
-	
-		if (app.dotView() != null)
-		{
-			app.dotView().paintImmediately(0, 0, app.dotView().getWidth(), app.dotView().getHeight()); 
-			//app.dotView().repaint(); 
-		}
+			if (app.globeView() != null)
+			{
+				app.globeView().paintImmediately(0, 0, app.globeView().getWidth(), app.globeView().getHeight()); 
+				//app.globeView().repaint(); 
+			}
 
-		if (app.globeView() != null)
-		{
-			app.globeView().paintImmediately(0, 0, app.globeView().getWidth(), app.globeView().getHeight()); 
-			//app.globeView().repaint(); 
+//			if (app.mapView() != null)
+//				app.mapView().repaint();
 		}
-
-//		if (app.mapView() != null)
-//			app.mapView().repaint();
 
 		pass--;
 		
@@ -674,7 +687,10 @@ public class Stippler
 		{
 			// Trigger the next iteration
 			//app.worker().iterate();
-			app.iterate();
+			if(app != null)
+				app.iterate();
+			else
+				relax();
 		}
 		else
 		{
@@ -1107,7 +1123,7 @@ public class Stippler
   
 	//-------------------------------------------------------------------------
 	
-	String createOutputPath(String ending)
+	public String createOutputPath(String ending)
 	{
 		String path = new String(imageName);
 		
@@ -1125,44 +1141,6 @@ public class Stippler
 		path = "out/" + path;
 		
 		return path;
-	}
-	
-	void exportMesh()
-	{
-		ArrayList<Edge> edges = new ArrayList<Edge>();
-		String path = createOutputPath("-mesh.svg");
-		
-		System.out.println("Saving SVG mesh to " + path + "...");
-		
-		// outputs triangulation as mesh
-		List<Coordinate[]> triangles = triang.getTriangleCoordinates(false);
-		
-		for (Coordinate[] triangle : triangles)
-		{
-			for (int i = 0; i < 3; i++)
-			{
-				edges.add(new Edge(triangle[i], triangle[i+1]));
-			}
-		}
-		
-		// outputs Voronoi Diagram mesh instead of triangulation
-		
-//		int numPolys = polys.getNumGeometries();
-//
-//		for (int i = 0; i < numPolys; i++)
-//		{
-//			Geometry poly = polys.getGeometryN(i);
-//			Coordinate[] coords = poly.getCoordinates();
-//			
-//			for (int j = 0; j < coords.length-1; j++)
-//			{
-//				edges.add(new Edge(coords[j], coords[j+1]));
-//			}
-//		}
-		
-
-        SVGUtil svgwrite = new SVGUtil(edges, null);
-        svgwrite.createSVG(path);
 	}
 
 	/**
@@ -1338,6 +1316,14 @@ public class Stippler
 	{
 		pass = 0;
 		//pause = false;
+	}
+	
+	public QuadEdgeSubdivision getTriang(){
+		return triang;
+	}
+	
+	public GeometryCollection getPolys(){
+		return polys;
 	}
 	
 	//-------------------------------------------------------------------------

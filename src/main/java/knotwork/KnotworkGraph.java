@@ -2,6 +2,7 @@ package knotwork;
 
 import knotwork.curve.CubicBezier;
 import knotwork.curve.Curve;
+import knotwork.curve.OverpassCurve;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
 import util.AngleUtil;
@@ -19,6 +20,7 @@ public class KnotworkGraph {
     public ArrayList<ArrayList<KnotNode>> controlSets;
 
     public ArrayList<ArrayList<Curve>> curveLists;
+    public ArrayList<OverpassCurve> overpassCurveList;
 
 
     public KnotworkGraph(ArrayList<Coordinate> nodes, ArrayList<Edge> edges) {
@@ -31,8 +33,67 @@ public class KnotworkGraph {
         // create control sets:
         this.controlSets = this.getControlSets();
 
+        // sets over/under for every knotnode(pair)
+        determineOverUnderPattern();
+
         // create curve list:
         this.curveLists = this.createCurveLists();
+
+        // create list with curves that are overpasses (go on top at crossing)
+        this.overpassCurveList = this.createOverpassCurveList();
+    }
+
+    private ArrayList<OverpassCurve> createOverpassCurveList() {
+        if (curveLists == null) return null;
+
+        ArrayList<OverpassCurve> overpassCurveList = new ArrayList<>();
+        for (int j = 0; j < curveLists.size(); j++) {
+            ArrayList<Curve> curveList = curveLists.get(j);
+            for (int i = 0; i < curveList.size(); i++) {
+                Curve curve = curveList.get(i);
+
+                if (curve.knotNode1.getOverpass()){
+                    CubicBezier cb = (CubicBezier) curve;
+                    CubicBezier cubicBezierSegment1 = cb.segmentCurve(0, 0.2);
+
+                    // get preceding curve:
+                    Curve precedingCurve;
+                    if (i == 0){
+                        precedingCurve = curveList.get(curveList.size() - 1);
+                    } else {
+                        precedingCurve = curveList.get(i - 1);
+                    }
+
+                    CubicBezier cb2 = (CubicBezier) precedingCurve;
+                    CubicBezier cubicBezierSegment2 = cb2.segmentCurve(0.8, 1);
+
+                    // add curves to list:
+                    overpassCurveList.add(new OverpassCurve(cubicBezierSegment1, cubicBezierSegment2, j));
+                }
+
+            }
+        }
+
+        return overpassCurveList;
+    }
+
+    private void determineOverUnderPattern(){
+        if (controlSets == null) return;
+
+        for (ArrayList<KnotNode> controlSet : controlSets) {
+            // alternating overpass value
+            boolean overpassValue = true;
+
+            // determine overpass value for  first knotnode in control set:
+            Boolean x = controlSet.get(0).getPrependicularKnotNodePair().getOverpass();
+            if ( x == null || x)
+                overpassValue = false;
+
+            for (KnotNode knotNode : controlSet) {
+                knotNode.setOverpass(overpassValue);
+                overpassValue = !overpassValue;
+            }
+        }
     }
 
     public boolean hasEqualSizeControlSetsAndCurveLists(){
@@ -52,11 +113,11 @@ public class KnotworkGraph {
                 curveList.add(new CubicBezier(
                         knotNodeList.get(i),
                         knotNode2
-                        ));
+                ));
             }
             curveLists.add(curveList);
         }
-       return curveLists;
+        return curveLists;
     }
 
     public KnotNode getInitialKnotNode(){
@@ -139,10 +200,8 @@ public class KnotworkGraph {
     public Crossing getCrossingForNode(KnotNode node) {
         Crossing matchingCrossing = null;
         for (Crossing crossing : crossings) {
-            if (crossing.rightNodePair.node1 == node
-                    || crossing.rightNodePair.node2 == node
-                    || crossing.leftNodePair.node1 == node
-                    || crossing.leftNodePair.node2 == node) {
+            if (crossing.rightNodePair.contains(node)
+                    || crossing.leftNodePair.contains(node)) {
                 matchingCrossing = crossing;
                 break;
             }
@@ -165,7 +224,7 @@ public class KnotworkGraph {
         KnotNodePair nodePair = null;
         ArrayList<KnotNodePair> allNodePairs = getAllNodePairs();
         for(KnotNodePair nP : allNodePairs){
-            if(nP.node1.equals(node) || nP.node2.equals(node)){
+            if(nP.contains(node)){
                 nodePair = nP;
             }
         }
@@ -186,7 +245,8 @@ public class KnotworkGraph {
 
     private ArrayList<KnotNode> runMercat(){
         ArrayList<KnotNode> controlSet = new ArrayList<>();
-        KnotNode node = getInitialKnotNode();
+        KnotNode initialNode = getInitialKnotNode();
+        KnotNode node = initialNode;
 
         // add starting node
         controlSet.add(node);
@@ -194,9 +254,9 @@ public class KnotworkGraph {
         // mark this nodePair as visited
         getKnotNodePairFromNode(node).visit();
 
-        // repeat until the controlSet list is closed (1st element == last element)
-        while(controlSet.size() < 2 || !controlSet.get(0).equals(controlSet.get(controlSet.size() - 1))){
-            KnotNode nextNode = getNextNode(node);
+        // repeat until the no further nodes found
+        while(true){
+            KnotNode nextNode = getNextNode(initialNode, node);
             if(nextNode == null){
                 break;
             }
@@ -215,7 +275,7 @@ public class KnotworkGraph {
      * @param node currentNode in the path
      * @return nextNode in the path
      */
-    private KnotNode getNextNode(KnotNode node){
+    private KnotNode getNextNode(KnotNode initialNode, KnotNode node){
         KnotNode newNode = null;
         Crossing cross = getCrossingForNode(node);
         ArrayList<Edge> incidentEdges = getAdjacentEdges(cross, node);
@@ -250,11 +310,20 @@ public class KnotworkGraph {
         for (Edge incidentEdge : incidentEdges) {
             Crossing crossing = getCrossingForEdge(incidentEdge);
             // nodePair must be opposite orientation of current node (if right, then left... etc.)
-            if(node.isLeftNode() && !crossing.rightNodePair.isVisited()){
+            if(node.isLeftNode()){
                 nodePair = crossing.rightNodePair;
             }
-            if(node.isRightNode() && !crossing.leftNodePair.isVisited()) {
+            if(node.isRightNode()) {
                 nodePair = crossing.leftNodePair;
+            }
+            if(nodePair.contains(initialNode)){
+                nodePair = null;
+                break;
+            }
+            if(nodePair.isVisited()){
+                nodePair = null;
+            } else {
+                break;
             }
         }
 

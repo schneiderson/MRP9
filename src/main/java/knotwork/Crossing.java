@@ -1,6 +1,5 @@
 package knotwork;
 
-import com.sun.corba.se.spi.transport.CorbaAcceptor;
 import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
@@ -30,6 +29,33 @@ public class Crossing {
 
         leftNodePair = new KnotNodePair(firstLeftNode);
         rightNodePair = new KnotNodePair(firstRightNode);
+    }
+
+    public KnotNodePair getPairByNode(KnotNode node){
+        if(leftNodePair.contains(node)){
+            return leftNodePair;
+        } else if(rightNodePair.contains(node)){
+            return rightNodePair;
+        }
+        return null;
+    }
+
+    public KnotNodePair getPerpendicularPairByNode(KnotNode node){
+        if(leftNodePair.contains(node)){
+            return rightNodePair;
+        } else if(rightNodePair.contains(node)){
+            return leftNodePair;
+        }
+        return null;
+    }
+
+    public KnotNodePair getPerpendicularPairByNodePair(KnotNodePair nodePair){
+        if(nodePair.equals(leftNodePair)){
+            return rightNodePair;
+        } else if(nodePair.equals(rightNodePair)){
+            return leftNodePair;
+        }
+        return null;
     }
 
     public void setBreakpoint(int type)

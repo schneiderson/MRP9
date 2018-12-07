@@ -10,40 +10,24 @@ public class KnotNode extends BaseNode {
     private boolean right;
     private Crossing crossing;
 
-    public static KnotNode createFromNormVector(Coordinate pos, Vector2D normVec, boolean right, Crossing crossing){
-        Vector2D vec;
-
-        // rotate from norm vector by 45 degree
-        Double rotation = Angle.toRadians(45);
-
-        // if it's a right node, rotate by -45, otherwise 45 degrees
-        if(right){
-            vec = normVec.rotate(-rotation);
-        } else{
-            vec = normVec.rotate(rotation);
-        }
-
-        return new KnotNode(pos, vec, right, crossing);
-    }
-
-    public KnotNode(Coordinate pos, Coordinate to, boolean right, Crossing crossing){
+    public KnotNode(Coordinate pos, Coordinate to, boolean right, Crossing crossing) {
         super(pos, new Vector2D(pos, to).normalize());
         this.crossing = crossing;
         this.right = right;
     }
 
-    public KnotNode(Coordinate pos, Vector2D vector, boolean right, Crossing crossing){
+    public KnotNode(Coordinate pos, Vector2D vector, boolean right, Crossing crossing) {
         super(pos, vector.normalize());
         this.crossing = crossing;
         this.right = right;
     }
 
-    public KnotNode(KnotNode knotNode){
+    public KnotNode(KnotNode knotNode) {
         /*
-        * Creates copy of KnotNode
-        * [Except for the Crossing object]
-        * Also inverts the vector (multiplying by -1)
-        * */
+         * Creates copy of KnotNode
+         * [Except for the Crossing object]
+         * Also inverts the vector (multiplying by -1)
+         * */
         super(knotNode.pos, knotNode.vector);
         this.pos = (Coordinate) knotNode.pos.clone();
         this.right = knotNode.right;
@@ -51,18 +35,48 @@ public class KnotNode extends BaseNode {
         this.vector = knotNode.vector.multiply(-1);
     }
 
-    public boolean isRightNode(){
+
+    public static KnotNode createFromNormVector(Coordinate pos, Vector2D normVec, boolean right, Crossing crossing) {
+        Vector2D vec;
+
+        // rotate from norm vector by 45 degree
+        Double rotation = Angle.toRadians(45);
+
+        // if it's a right node, rotate by -45, otherwise 45 degrees
+        if (right) {
+            vec = normVec.rotate(rotation);
+        } else {
+            vec = normVec.rotate(-rotation);
+        }
+
+        return new KnotNode(pos, vec, right, crossing);
+    }
+
+    public boolean isRightNode() {
         return right;
     }
 
-    public boolean isLeftNode(){
+    public boolean isLeftNode() {
         return !right;
     }
 
-    public Crossing getCrossing() { return crossing; }
+    public Crossing getCrossing() {
+        return crossing;
+    }
 
+    public KnotNodePair getPrependicularKnotNodePair(){
+        return crossing.getPerpendicularPairByNode(this);
+    }
 
     public boolean equals(KnotNode other) {
         return (this.vector.equals(other.vector) && this.pos.equals(other.pos) && right == other.right);
+    }
+
+    public Boolean getOverpass() {
+        return crossing.getPairByNode(this).getOverpass();
+    }
+
+    public void setOverpass(boolean overpass) {
+        crossing.getPairByNode(this).setOverpass(overpass);
     }
 }

@@ -133,11 +133,11 @@ public class Stipple implements ActionListener, ItemListener
 			stippler.exportRaw();
 			System.out.println("Done.");
 		}
-		else if (source.getText().equals("Save Mesh"))
+		/*else if (source.getText().equals("Save Mesh"))
 		{
 			stippler.exportMesh();
 			System.out.println("Done.");
-		}
+		}*/
 		else if (source.getText().equals("Start"))
 		{
 			
