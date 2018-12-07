@@ -2,6 +2,7 @@ package knotwork;
 
 import knotwork.curve.CubicBezier;
 import knotwork.curve.Curve;
+import knotwork.curve.OverpassCurve;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
 import util.AngleUtil;
@@ -19,6 +20,7 @@ public class KnotworkGraph {
     public ArrayList<ArrayList<KnotNode>> controlSets;
 
     public ArrayList<ArrayList<Curve>> curveLists;
+    public ArrayList<OverpassCurve> overpassCurveList;
 
 
     public KnotworkGraph(ArrayList<Coordinate> nodes, ArrayList<Edge> edges) {
@@ -31,18 +33,65 @@ public class KnotworkGraph {
         // create control sets:
         this.controlSets = this.getControlSets();
 
+        // sets over/under for every knotnode(pair)
+        determineOverUnderPattern();
+
         // create curve list:
         this.curveLists = this.createCurveLists();
+
+        // create list with curves that are overpasses (go on top at crossing)
+        this.overpassCurveList = this.createOverpassCurveList();
     }
 
-    public void determineOverUnderPattern(){
+    private ArrayList<OverpassCurve> createOverpassCurveList() {
+        if (curveLists == null) return null;
+
+        ArrayList<OverpassCurve> overpassCurveList = new ArrayList<>();
+        for (int j = 0; j < curveLists.size(); j++) {
+            ArrayList<Curve> curveList = curveLists.get(j);
+            for (int i = 0; i < curveList.size(); i++) {
+                Curve curve = curveList.get(i);
+
+                if (curve.knotNode1.getOverpass()){
+                    CubicBezier cb = (CubicBezier) curve;
+                    CubicBezier cubicBezierSegment1 = cb.segmentCurve(0, 0.2);
+
+                    // get preceding curve:
+                    Curve precedingCurve;
+                    if (i == 0){
+                        precedingCurve = curveList.get(curveList.size() - 1);
+                    } else {
+                        precedingCurve = curveList.get(i - 1);
+                    }
+
+                    CubicBezier cb2 = (CubicBezier) precedingCurve;
+                    CubicBezier cubicBezierSegment2 = cb2.segmentCurve(0.8, 1);
+
+                    // add curves to list:
+                    overpassCurveList.add(new OverpassCurve(cubicBezierSegment1, cubicBezierSegment2, j));
+                }
+
+            }
+        }
+
+        return overpassCurveList;
+    }
+
+    private void determineOverUnderPattern(){
         if (controlSets == null) return;
 
         for (ArrayList<KnotNode> controlSet : controlSets) {
+            // alternating overpass value
+            boolean overpassValue = true;
+
+            // determine overpass value for  first knotnode in control set:
+            Boolean x = controlSet.get(0).getPrependicularKnotNodePair().getOverpass();
+            if ( x == null || x)
+                overpassValue = false;
+
             for (KnotNode knotNode : controlSet) {
-                if (knotNode.isOverpass()){
-                    System.out.println("hi");
-                }
+                knotNode.setOverpass(overpassValue);
+                overpassValue = !overpassValue;
             }
         }
     }

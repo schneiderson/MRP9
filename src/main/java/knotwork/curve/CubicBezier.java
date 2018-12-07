@@ -113,17 +113,10 @@ public class CubicBezier extends Curve {
         double yc = qyb*u0 + qyd*t0;
         double yd = qyb*u1 + qyd*t1;
 
-        cubicBezier.anchor1.setX(xa);
-        cubicBezier.anchor1.setY(ya);
-
-        cubicBezier.control1.setX(xb);
-        cubicBezier.control1.setY(yb);
-
-        cubicBezier.control2.setX(xc);
-        cubicBezier.control2.setY(yc);
-
-        cubicBezier.anchor2.setX(xd);
-        cubicBezier.anchor2.setY(yd);
+        cubicBezier.anchor1 = new Coordinate(xa, ya);
+        cubicBezier.control1 = new Coordinate(xb, yb);
+        cubicBezier.control2 = new Coordinate(xc, yc);
+        cubicBezier.anchor2 = new Coordinate(xd, yd);
 
         return cubicBezier;
     }

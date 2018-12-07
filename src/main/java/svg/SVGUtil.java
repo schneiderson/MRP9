@@ -3,6 +3,7 @@ package svg;
 import knotwork.Edge;
 import knotwork.curve.CubicBezier;
 import knotwork.curve.Curve;
+import knotwork.curve.OverpassCurve;
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.util.SVGConstants;
@@ -27,6 +28,8 @@ public class SVGUtil {
     public ArrayList<Edge> edges = new ArrayList<Edge>();
     public ArrayList<Coordinate> nodes = new ArrayList<Coordinate>();
     public ArrayList<ArrayList<Curve>> curveLists = new ArrayList<>();
+    public ArrayList<OverpassCurve> overpassCurveList = new ArrayList<>();
+
 
     public SVGUtil(ArrayList<Edge> edges, ArrayList<Coordinate> nodes){
         if(edges != null){
@@ -50,6 +53,16 @@ public class SVGUtil {
         }
     }
 
+    public SVGUtil(ArrayList<Edge> edges, ArrayList<Coordinate> nodes,
+                   ArrayList<ArrayList<Curve>> curveLists, ArrayList<OverpassCurve> overpassCurveList) {
+        this(edges, nodes);
+        if (curveLists != null){
+            this.curveLists = curveLists;
+        }
+        if (overpassCurveList != null){
+            this.overpassCurveList = overpassCurveList;
+        }
+    }
 
     private void getNodesFromEdges(ArrayList<Edge> edges){
         for(Edge e : edges){
@@ -90,9 +103,11 @@ public class SVGUtil {
     public void createSVG(String path, boolean includeMesh){
         try{
             // set up color iterator for the different curve lists:
-            Iterator<String> colors = MathUtil.cycle(new String[]{
-                    "red", "green", "blue", "yellow", "purple", "cyan", "orange"
-            });
+            String[] colorArray = new String[]{"red", "green", "blue", "yellow", "purple", "cyan", "orange"};
+            Iterator<String> colors = MathUtil.cycle(colorArray);
+            String outlineColor = "black";
+            String strokeWidthWide = "30";
+            String strokeWidthNarrow = "24";
 
             // find largest x and y coordinates
             double x_max = 0, y_max = 0;
@@ -137,9 +152,9 @@ public class SVGUtil {
                                     cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
                                     cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
                     );
-                    curvePathWide.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, "black");
+                    curvePathWide.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, outlineColor);
                     curvePathWide.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG,
-                            "fill:none;stroke-width:20");
+                            "fill:none;stroke-width:" + strokeWidthWide);
 
                     // narrow thread:
                     Element curvePathNarrow = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
@@ -151,13 +166,81 @@ public class SVGUtil {
                     );
                     curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, curveListColor);
                     curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG,
-                            "fill:none;stroke-width:16");
+                            "stroke-linecap:round;fill:none;stroke-width:" + strokeWidthNarrow);
 
                     // attach the curves to the svg root element
                     svgRoot.appendChild(curvePathWide);
                     svgRoot.appendChild(curvePathNarrow);
                 }
             }
+
+            // apply over-under pattern:
+            for (OverpassCurve overpassCurve : overpassCurveList) {
+                String color = colorArray[overpassCurve.getId()];
+
+                CubicBezier cbCurve = overpassCurve.getCurve1().getCubicBezierPoints();
+                // wide thread:
+                Element curvePathWide = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
+                curvePathWide.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
+                        "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                                "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
+                                cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
+                                cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
+                );
+                curvePathWide.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, outlineColor);
+                curvePathWide.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG,
+                        "fill:none;stroke-width:" + strokeWidthWide);
+
+                // narrow thread:
+                Element curvePathNarrow = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
+                curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
+                        "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                                "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
+                                cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
+                                cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
+                );
+                curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, color);
+                curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG,
+                        "stroke-linecap:round;fill:none;stroke-width:" + strokeWidthNarrow);
+
+                // attach the curves to the svg root element
+                svgRoot.appendChild(curvePathWide);
+                svgRoot.appendChild(curvePathNarrow);
+
+
+                // --------------------------------------------------------------
+
+
+                cbCurve = overpassCurve.getCurve2().getCubicBezierPoints();
+                // wide thread:
+                Element curvePathWide2 = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
+                curvePathWide2.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
+                        "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                                "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
+                                cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
+                                cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
+                );
+                curvePathWide2.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, outlineColor);
+                curvePathWide2.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG,
+                        "fill:none;stroke-width:" + strokeWidthWide);
+
+                // narrow thread:
+                Element curvePathNarrow2 = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
+                curvePathNarrow2.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
+                        "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                                "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
+                                cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
+                                cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
+                );
+                curvePathNarrow2.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, color);
+                curvePathNarrow2.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG,
+                        "stroke-linecap:round;fill:none;stroke-width:" + strokeWidthNarrow);
+
+                // attach the curves to the svg root element
+                svgRoot.appendChild(curvePathWide2);
+                svgRoot.appendChild(curvePathNarrow2);
+            }
+
 
             // set the width and height attribute on the root svg element:
             svgRoot.setAttributeNS(null, "width", Double.toString(Math.ceil(x_max * 2)));
