@@ -5,6 +5,8 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
 import util.AngleUtil;
 
+import java.util.ArrayList;
+
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 
@@ -13,14 +15,15 @@ public class Crossing {
     public Coordinate pos;
     public KnotNodePair leftNodePair;
     public KnotNodePair rightNodePair;
+    public ArrayList<KnotNode> metaPoints = new ArrayList<KnotNode>();
     public Vector2D normVector;
     public Edge edge;
     public int breakpoint = 0;
 
-
     public Crossing(Edge edge){
         this.edge = edge;
         pos = edge.midpoint;
+        this.breakpoint = edge.breakpoint;
 
         normVector = getNormVector(edge);
 
@@ -58,14 +61,33 @@ public class Crossing {
         return null;
     }
 
-    public void setBreakpoint(int type)
+    /*public void setBreakpoint(int type)
     {
         if (type == 0 || type == 1 || type == 2)
         {this.breakpoint = type;}
     }
+    */
+
+    private void setBreakPointPair()
+    {
+        if (this.breakpoint == 1)
+        {
+            Coordinate posMeta = new Coordinate(this.pos.x + this.normVector.toCoordinate().x,
+                    this.pos.y + this.normVector.toCoordinate().y);
+            Coordinate negMeta = new Coordinate(this.pos.x - this.normVector.toCoordinate().x,
+                    this.pos.y - this.normVector.toCoordinate().y);
+            //two vector directions are possible
+            Vector2D v1 =  this.normVector.rotateByQuarterCircle(1);
+            Vector2D v2 =  this.normVector.rotateByQuarterCircle(3);
+        }
+        else if (this.breakpoint == 2)
+        {
+
+        }
+    }
 
     //Creates meta point if the crossing is marked as a break point
-    public BaseNode getMetaPoint(BaseNode prevNode)
+    public KnotNode getMetaPoint(KnotNode prevNode)
     {
         if (!(this.breakpoint == 1 || this.breakpoint == 2)) {return null;}
 
@@ -104,7 +126,9 @@ public class Crossing {
         if(posMetaDist < negMetaDist) {meta = posMeta;}
         else {meta = negMeta;}
 
-        return new BaseNode(meta, vec);
+        KnotNode newMeta = new KnotNode(meta, vec, prevNode.isRightNode(), this);
+        this.metaPoints.add(newMeta);
+        return newMeta;
     }
 
     public static Vector2D getNormVector(Edge edge){

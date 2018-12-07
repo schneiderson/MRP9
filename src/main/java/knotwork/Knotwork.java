@@ -18,15 +18,15 @@ public class Knotwork {
         //alternative:
         // choose different input image path AND/OR different number of stipples (= mesh density)
         // default: imgPath = "res/robot-2.jpg", numDots = 1000
-        VoronoiMesh mesh = new VoronoiMesh("res/shaded_cube.png", 500);
+        //VoronoiMesh mesh = new VoronoiMesh("res/shaded_cube.png", 500);
 
         // SVGUtil svgutil = mesh.createTriangularMesh();
         // or:
-        SVGUtil svgutil = mesh.createVoronoiMesh();
+        //SVGUtil svgutil = mesh.createVoronoiMesh();
         // or: (from svg mesh representation)
 
-        //SVGUtil svgutil = new SVGUtil(null, null);
-        //svgutil.readFromSvg("res/test5.svg");
+        SVGUtil svgutil = new SVGUtil(null, null);
+        svgutil.readFromSvg("graph.svg");
 
         // create knotwork graph
         KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);

@@ -90,8 +90,11 @@ public class KnotworkGraph {
                 overpassValue = false;
 
             for (KnotNode knotNode : controlSet) {
-                knotNode.setOverpass(overpassValue);
-                overpassValue = !overpassValue;
+                if(!knotNode.getCrossing().hasBreakPoint())
+                {
+                    knotNode.setOverpass(overpassValue);
+                    overpassValue = !overpassValue;
+                }
             }
         }
     }
@@ -122,8 +125,8 @@ public class KnotworkGraph {
 
     public KnotNode getInitialKnotNode(){
         ArrayList<KnotNodePair> unvisited = getUnvisitedNodePairs();
-        if(unvisited.size() > 0){
-            return unvisited.get(0).node1;
+        if(unvisited.size() > 0) {
+                return unvisited.get(0).node1;
         }
         return null;
     }
@@ -201,7 +204,8 @@ public class KnotworkGraph {
         Crossing matchingCrossing = null;
         for (Crossing crossing : crossings) {
             if (crossing.rightNodePair.contains(node)
-                    || crossing.leftNodePair.contains(node)) {
+                    || crossing.leftNodePair.contains(node)
+                    || crossing.metaPoints.contains(node)) {
                 matchingCrossing = crossing;
                 break;
             }
@@ -246,13 +250,21 @@ public class KnotworkGraph {
     private ArrayList<KnotNode> runMercat(){
         ArrayList<KnotNode> controlSet = new ArrayList<>();
         KnotNode initialNode = getInitialKnotNode();
-        KnotNode node = initialNode;
+        KnotNode node;
+        if(initialNode.getCrossing().hasBreakPoint())
+        {
+            node = initialNode.getCrossing().getMetaPoint(initialNode);
+        }
+        else
+        {
+            node = initialNode;
+        }
 
         // add starting node
         controlSet.add(node);
 
         // mark this nodePair as visited
-        getKnotNodePairFromNode(node).visit();
+        getKnotNodePairFromNode(initialNode).visit();
 
         // repeat until the no further nodes found
         while(true){
@@ -286,6 +298,7 @@ public class KnotworkGraph {
         Vector2D baseVec = new Vector2D(junction, node.getPos());
         incidentEdges.sort((e1, e2) -> {
             Vector2D edgeVecE1 = new Vector2D(junction, e1.midpoint);
+
             Vector2D edgeVecE2 = new Vector2D(junction, e2.midpoint);
             Double angleE1 = AngleUtil.getAngleRadiansRescaled(baseVec.angleTo(edgeVecE1));
             Double angleE2 = AngleUtil.getAngleRadiansRescaled(baseVec.angleTo(edgeVecE2));
@@ -328,18 +341,27 @@ public class KnotworkGraph {
         }
 
 
-        if(nodePair != null){
-
-            // get node pointing away from junction
-            Vector2D juncVec = new Vector2D(junction, nodePair.node1.getPos());
-            Double angle1 = juncVec.angleTo(nodePair.node1.getVector());
-            Double angle2 = juncVec.angleTo(nodePair.node2.getVector());
-            if(abs(angle1) < abs(angle2)){
-                newNode = nodePair.node1;
-            } else {
-                newNode = nodePair.node2;
+        if(nodePair != null)
+        {
+            //if the crossing has a breakpoint
+            if (nodePair.getCrossing().hasBreakPoint())
+            {
+                newNode = nodePair.getCrossing().getMetaPoint(node);
             }
-
+            else
+            {
+                // get node pointing away from junction
+                Vector2D juncVec = new Vector2D(junction, nodePair.node1.getPos());
+                Double angle1 = juncVec.angleTo(nodePair.node1.getVector());
+                Double angle2 = juncVec.angleTo(nodePair.node2.getVector());
+                if (abs(angle1) < abs(angle2))
+                {
+                    newNode = nodePair.node1;
+                } else
+                {
+                    newNode = nodePair.node2;
+                }
+            }
             // mark nodePair as visited
             nodePair.visit();
         }

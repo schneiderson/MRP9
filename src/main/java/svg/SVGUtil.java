@@ -104,6 +104,8 @@ public class SVGUtil {
         try{
             // set up color iterator for the different curve lists:
             String[] colorArray = new String[]{"red", "green", "blue", "yellow", "purple", "cyan", "orange"};
+            // the color list to signify normal edges vs those with breakpoints
+            String[] edgeColorArray = new String[] {"rgb(0,0,0)", "rgb(0,0,255)", "rgb(255,255,0)"};
             Iterator<String> colors = MathUtil.cycle(colorArray);
             String outlineColor = "black";
             String strokeWidthWide = "30";
@@ -127,7 +129,7 @@ public class SVGUtil {
                 // create the line for each edge
                 for (Edge e : edges) {
                     Element line = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
-                    line.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:rgb(0,0,0);stroke-width:1");
+                    line.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:"+edgeColorArray[e.breakpoint]+";stroke-width:1");
                     line.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(e.c1.x));
                     line.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(e.c1.y));
                     line.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(e.c2.x));
@@ -279,17 +281,28 @@ public class SVGUtil {
                     NamedNodeMap attribs = children.item(i).getAttributes();
 
                     HashMap<String, Double> coor = new HashMap<>();
+                    int edgeType = 0;
 
                     for(int j = 0; j < attribs.getLength(); j++){
                         String name = attribs.item(j).getNodeName();
                         if(name.equals("x1") || name.equals("y1") || name.equals("x2") || name.equals("y2")){
                             coor.put(name, Double.parseDouble(attribs.item(j).getNodeValue()));
                         }
+                        else if (name.equals("style")) //read what type of edge this is
+                        {
+                            String rgbColor = attribs.item(j).getNodeValue().split("[:;]")[1]; //gets 'rgb(x,y,z)' part
+                            if (rgbColor.equals("rgb(0,0,255)"))
+                            {edgeType = 1;}
+                            else if (rgbColor.equals("rgb(255,255,0)"))
+                            {edgeType = 2;}
+                            else
+                            {edgeType = 0;}
+                        }
                     }
 
                     Coordinate c1 = new Coordinate(coor.get("x1"), coor.get("y1"));
                     Coordinate c2 = new Coordinate(coor.get("x2"), coor.get("y2"));
-                    Edge newEdge = new Edge(c1, c2);
+                    Edge newEdge = new Edge(c1, c2, edgeType);
 
                     if(!containsEdge(newEdge)){
                         edges.add(newEdge);
