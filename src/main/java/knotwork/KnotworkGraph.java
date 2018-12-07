@@ -35,6 +35,18 @@ public class KnotworkGraph {
         this.curveLists = this.createCurveLists();
     }
 
+    public void determineOverUnderPattern(){
+        if (controlSets == null) return;
+
+        for (ArrayList<KnotNode> controlSet : controlSets) {
+            for (KnotNode knotNode : controlSet) {
+                if (knotNode.isOverpass()){
+                    System.out.println("hi");
+                }
+            }
+        }
+    }
+
     public boolean hasEqualSizeControlSetsAndCurveLists(){
         return (curveLists.size() == controlSets.size());
     }
@@ -52,11 +64,11 @@ public class KnotworkGraph {
                 curveList.add(new CubicBezier(
                         knotNodeList.get(i),
                         knotNode2
-                        ));
+                ));
             }
             curveLists.add(curveList);
         }
-       return curveLists;
+        return curveLists;
     }
 
     public KnotNode getInitialKnotNode(){

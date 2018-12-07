@@ -38,6 +38,13 @@ public class VoronoiMesh {
 		stipple();
 	}
 
+
+	public SVGUtil fromSVGMesh(String path){
+		// start with reading the edges from the svg
+		SVGUtil svgutil = new SVGUtil(null, null);
+		svgutil.readFromSvg(path);
+		return  svgutil;
+	}
 	
 	public SVGUtil createTriangularMesh()
 	{		

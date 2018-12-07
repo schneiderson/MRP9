@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="text/ecmascript" width="1200.0" zoomAndPan="magnify" contentStyleType="text/css" height="1200.0" preserveAspectRatio="xMidYMid meet" version="1.0">
+<line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="300.0" x2="300.0" y1="300.0"/>
+<line y2="300.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="300.0" y1="300.0"/>
+<line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="600.0" y1="300.0"/>
+<line y2="600.0" style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" x2="300.0" y1="600.0"/>
+<path style="fill:none;stroke-width:20" d="M300.0,450.0 C87.87,662.13 237.87,812.13 450.0,600.0" stroke="black"/>
+<path style="fill:none;stroke-width:16" d="M300.0,450.0 C87.87,662.13 237.87,812.13 450.0,600.0" stroke="red"/>
+<path style="fill:none;stroke-width:20" d="M450.0,600.0 C500.0,550.0 550.0,500.0 600.0,450.0" stroke="black"/>
+<path style="fill:none;stroke-width:16" d="M450.0,600.0 C500.0,550.0 550.0,500.0 600.0,450.0" stroke="red"/>
+<path style="fill:none;stroke-width:20" d="M600.0,450.0 C812.13,237.87 662.13,87.87 450.0,300.0" stroke="black"/>
+<path style="fill:none;stroke-width:16" d="M600.0,450.0 C812.13,237.87 662.13,87.87 450.0,300.0" stroke="red"/>
+<path style="fill:none;stroke-width:20" d="M450.0,300.0 C400.0,350.0 350.0,400.0 300.0,450.0" stroke="black"/>
+<path style="fill:none;stroke-width:16" d="M450.0,300.0 C400.0,350.0 350.0,400.0 300.0,450.0" stroke="red"/>
+<path style="fill:none;stroke-width:20" d="M300.0,450.0 C87.87,237.87 237.87,87.87 450.0,300.0" stroke="black"/>
+<path style="fill:none;stroke-width:16" d="M300.0,450.0 C87.87,237.87 237.87,87.87 450.0,300.0" stroke="green"/>
+<path style="fill:none;stroke-width:20" d="M450.0,300.0 C500.0,350.0 550.0,400.0 600.0,450.0" stroke="black"/>
+<path style="fill:none;stroke-width:16" d="M450.0,300.0 C500.0,350.0 550.0,400.0 600.0,450.0" stroke="green"/>
+<path style="fill:none;stroke-width:20" d="M600.0,450.0 C812.13,662.13 662.13,812.13 450.0,600.0" stroke="black"/>
+<path style="fill:none;stroke-width:16" d="M600.0,450.0 C812.13,662.13 662.13,812.13 450.0,600.0" stroke="green"/>
+<path style="fill:none;stroke-width:20" d="M450.0,600.0 C400.0,550.0 350.0,500.0 300.0,450.0" stroke="black"/>
+<path style="fill:none;stroke-width:16" d="M450.0,600.0 C400.0,550.0 350.0,500.0 300.0,450.0" stroke="green"/>
+</svg>

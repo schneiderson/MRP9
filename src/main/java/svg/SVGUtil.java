@@ -84,10 +84,15 @@ public class SVGUtil {
 
 
     public void createSVG(String path){
+        createSVG(path, true);
+    }
 
+    public void createSVG(String path, boolean includeMesh){
         try{
             // set up color iterator for the different curve lists:
-            Iterator<String> colors = MathUtil.cycle(new String[]{"red", "green", "blue", "yellow"});
+            Iterator<String> colors = MathUtil.cycle(new String[]{
+                    "red", "green", "blue", "yellow", "purple", "cyan", "orange"
+            });
 
             // find largest x and y coordinates
             double x_max = 0, y_max = 0;
@@ -103,18 +108,19 @@ public class SVGUtil {
             // get the root element (the svg element)
             Element svgRoot = doc.getDocumentElement();
 
+            if (includeMesh) {
+                // create the line for each edge
+                for (Edge e : edges) {
+                    Element line = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                    line.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:rgb(0,0,0);stroke-width:1");
+                    line.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(e.c1.x));
+                    line.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(e.c1.y));
+                    line.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(e.c2.x));
+                    line.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(e.c2.y));
 
-            // create the line for each edge
-            for (Edge e: edges) {
-                Element line = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
-                line.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:rgb(0,0,0);stroke-width:1");
-                line.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(e.c1.x));
-                line.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(e.c1.y));
-                line.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(e.c2.x));
-                line.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(e.c2.y));
-
-                // attach the line to the svg root element
-                svgRoot.appendChild(line);
+                    // attach the line to the svg root element
+                    svgRoot.appendChild(line);
+                }
             }
 
             // create curves between knot nodes:
@@ -123,33 +129,44 @@ public class SVGUtil {
                 for (Curve curve : curveList){
                     CubicBezier cbCurve = curve.getCubicBezierPoints();
 
-                    Element curvePath = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
-
-                    curvePath.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
+                    // wide thread:
+                    Element curvePathWide = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
+                    curvePathWide.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
                             "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
                                     "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
                                     cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
                                     cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
                     );
+                    curvePathWide.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, "black");
+                    curvePathWide.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG,
+                            "fill:none;stroke-width:20");
 
-                    curvePath.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, curveListColor);
-                    curvePath.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, "transparent");
-                    curvePath.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "fill:none;");
+                    // narrow thread:
+                    Element curvePathNarrow = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
+                    curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
+                            "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                                    "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
+                                    cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
+                                    cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
+                    );
+                    curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, curveListColor);
+                    curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG,
+                            "fill:none;stroke-width:16");
 
-                    // attach the curve to the svg root element
-                    svgRoot.appendChild(curvePath);
+                    // attach the curves to the svg root element
+                    svgRoot.appendChild(curvePathWide);
+                    svgRoot.appendChild(curvePathNarrow);
                 }
             }
-
 
             // set the width and height attribute on the root svg element:
             svgRoot.setAttributeNS(null, "width", Double.toString(Math.ceil(x_max * 2)));
             svgRoot.setAttributeNS(null, "height", Double.toString(Math.ceil(y_max * 2)));
 
-
             // write svg file
             OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(path)));
             javax.xml.transform.Result result = new StreamResult(out);
+
             // Use a transformer for pretty printing
             Transformer xformer = TransformerFactory.newInstance().newTransformer();
             xformer.setOutputProperty(OutputKeys.INDENT, "yes");

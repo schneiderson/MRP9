@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="text/ecmascript" width="1000.0" zoomAndPan="magnify" contentStyleType="text/css" height="1000.0" preserveAspectRatio="xMidYMid meet" version="1.0">
     <line style="stroke:rgb(0,0,0);stroke-width:1" x1="300.0" y1="300.0" x2="300.0" y2="600.0" />
-    <line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="300.0" x2="300.0" y2="600.0" />
+    <!--<line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="300.0" x2="300.0" y2="600.0" />-->
     <line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="300.0" x2="300.0" y2="300.0" />
 
     <line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="300.0" x2="600.0" y2="600.0" />
