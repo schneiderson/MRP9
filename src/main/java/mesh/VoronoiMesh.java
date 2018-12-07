@@ -88,11 +88,63 @@ public class VoronoiMesh {
 		}
 		
         SVGUtil svgwrite = new SVGUtil(edges, null);
-        svgwrite.createSVG(System.getProperty("user.dir") + "/res/voronoi_mesh.svg");
-
+        removeLongEdges(svgwrite, 1.2);
+        svgwrite.createSVG(System.getProperty("user.dir") + "/voronoi_mesh.svg");
+        
         return svgwrite;
 	}
 	
+	public SVGUtil createQuadrangularMesh(){
+		
+		ArrayList<Edge> edges = new ArrayList<Edge>();
+		GeometryCollection polys = stippler.getPolys();
+		int numPolys = polys.getNumGeometries();
+
+		for (int i = 0; i < numPolys; i++)
+		{
+			Geometry poly = polys.getGeometryN(i);
+			Coordinate[] coords = poly.getCoordinates();
+			Coordinate centroid = poly.getCentroid().getCoordinate();
+			
+			for (int j = 0; j < coords.length-1; j++)
+			{
+				edges.add(new Edge(coords[j], coords[j+1]));
+				Coordinate edgeMidpoint = new Coordinate((coords[j].x + coords[j+1].x) / 2d, (coords[j].y + coords[j+1].y) / 2d);
+				edges.add(new Edge(edgeMidpoint, centroid));
+			}
+		}
+		
+        SVGUtil svgwrite = new SVGUtil(edges, null);
+        removeLongEdges(svgwrite, 1.2);
+        svgwrite.createSVG(System.getProperty("user.dir") + "/quadrangular_mesh.svg");
+        
+        return svgwrite;
+	}
+	
+	public void removeLongEdges(SVGUtil mesh, double factor){
+		
+		ArrayList<Edge> edges = mesh.edges;
+		ArrayList<Double> edgeLengths = new ArrayList<Double>();
+		double thisLength;
+		double avgLength = 0;
+		
+		for(Edge e : edges){
+			thisLength = e.getLength();
+			edgeLengths.add(thisLength);
+			avgLength += thisLength;
+		}
+		
+		avgLength = avgLength/edges.size();
+		
+		for(int i = 0; i < edges.size(); i++){
+			if(edgeLengths.get(i) >= factor*avgLength){
+				edgeLengths.remove(i);
+				edges.remove(i);
+				i -= 1;
+			}
+		}
+	}
+
 	public void stipple(){
 		stippler.numDots = this.numDots;
 		stippler.loadImage(this.imgPath);

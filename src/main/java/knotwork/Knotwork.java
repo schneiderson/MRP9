@@ -14,19 +14,20 @@ public class Knotwork {
 
     public static void main(String[] args) {
 
-//        VoronoiMesh mesh = new VoronoiMesh();
-        // alternative:
+        //VoronoiMesh mesh = new VoronoiMesh();
+        //alternative:
         // choose different input image path AND/OR different number of stipples (= mesh density)
         // default: imgPath = "res/robot-2.jpg", numDots = 1000
-//        VoronoiMesh mesh = new VoronoiMesh("res/shaded_cube.png", 1000);
+         VoronoiMesh mesh = new VoronoiMesh("res/shaded_cube.png", 300);
 
 //         SVGUtil svgutil = mesh.createTriangularMesh();
         // or:
-//        SVGUtil svgutil = mesh.createVoronoiMesh();
-//        System.out.println("\n> Mesh Created");
+        //SVGUtil svgutil = mesh.createVoronoiMesh();
+        // or: (from svg mesh representation)
+         SVGUtil svgutil = mesh.createQuadrangularMesh();
 
-        SVGUtil svgutil = new SVGUtil(null, null);
-        svgutil.readFromSvg("res/test.svg");
+        //SVGUtil svgutil = new SVGUtil(null, null);
+        //svgutil.readFromSvg("res/test2.svg");
 
         // create knotwork graph
         System.out.println("\n> Creating Graph");
@@ -40,7 +41,7 @@ public class Knotwork {
 
 
         // Print control and curve sets/lists
-//        System.out.println("Number of controlSets = " + graph.controlSets.size() + "\n");
+        System.out.println("Number of controlSets = " + graph.controlSets.size() + "\n");
 //        for (int i = 0; graph.controlSets.size() > i; i++) {
 //            System.out.println("Control set " + (1 + i) + " has size " + graph.controlSets.get(i).size());
 //            for (KnotNode kN : graph.controlSets.get(i)){
