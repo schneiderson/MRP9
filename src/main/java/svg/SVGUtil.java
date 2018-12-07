@@ -176,7 +176,7 @@ public class SVGUtil {
 
             // apply over-under pattern:
             for (OverpassCurve overpassCurve : overpassCurveList) {
-                String color = colorArray[overpassCurve.getId()];
+                String color = colorArray[overpassCurve.getId() % colorArray.length];
 
                 CubicBezier cbCurve = overpassCurve.getCurve1().getCubicBezierPoints();
                 // wide thread:
@@ -257,7 +257,7 @@ public class SVGUtil {
             out.flush();
             out.close();
 
-        } catch ( Exception e){
+        } catch ( Exception e ){
             System.out.println("Couldn't save SVG file");
             System.out.println(e);
         }

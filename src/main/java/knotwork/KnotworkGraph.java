@@ -254,7 +254,7 @@ public class KnotworkGraph {
         // mark this nodePair as visited
         getKnotNodePairFromNode(node).visit();
 
-        // repeat until the no further edges found
+        // repeat until the no further nodes found
         while(true){
             KnotNode nextNode = getNextNode(initialNode, node);
             if(nextNode == null){
@@ -320,7 +320,9 @@ public class KnotworkGraph {
                 nodePair = null;
                 break;
             }
-            if(!nodePair.isVisited()){
+            if(nodePair.isVisited()){
+                nodePair = null;
+            } else {
                 break;
             }
         }
