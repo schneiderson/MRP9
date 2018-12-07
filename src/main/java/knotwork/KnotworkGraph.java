@@ -151,10 +151,8 @@ public class KnotworkGraph {
     public Crossing getCrossingForNode(KnotNode node) {
         Crossing matchingCrossing = null;
         for (Crossing crossing : crossings) {
-            if (crossing.rightNodePair.node1 == node
-                    || crossing.rightNodePair.node2 == node
-                    || crossing.leftNodePair.node1 == node
-                    || crossing.leftNodePair.node2 == node) {
+            if (crossing.rightNodePair.contains(node)
+                    || crossing.leftNodePair.contains(node)) {
                 matchingCrossing = crossing;
                 break;
             }
@@ -177,7 +175,7 @@ public class KnotworkGraph {
         KnotNodePair nodePair = null;
         ArrayList<KnotNodePair> allNodePairs = getAllNodePairs();
         for(KnotNodePair nP : allNodePairs){
-            if(nP.node1.equals(node) || nP.node2.equals(node)){
+            if(nP.contains(node)){
                 nodePair = nP;
             }
         }

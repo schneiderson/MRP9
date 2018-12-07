@@ -31,6 +31,24 @@ public class Crossing {
         rightNodePair = new KnotNodePair(firstRightNode);
     }
 
+    public KnotNodePair getPerpendicularPairByNode(KnotNode node){
+        if(leftNodePair.contains(node)){
+            return rightNodePair;
+        } else if(rightNodePair.contains(node)){
+            return leftNodePair;
+        }
+        return null;
+    }
+
+    public KnotNodePair getPerpendicularPairByNodePair(KnotNodePair nodePair){
+        if(nodePair.equals(leftNodePair)){
+            return rightNodePair;
+        } else if(nodePair.equals(rightNodePair)){
+            return leftNodePair;
+        }
+        return null;
+    }
+
     public void setBreakpoint(int type)
     {
         if (type == 0 || type == 1 || type == 2)
