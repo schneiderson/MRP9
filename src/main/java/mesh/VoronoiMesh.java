@@ -64,7 +64,7 @@ public class VoronoiMesh {
 		}
 		
         SVGUtil svgwrite = new SVGUtil(edges, null);
-        svgwrite.createSVG(System.getProperty("user.dir") + "/triangular_mesh.svg");
+        svgwrite.createSVG(System.getProperty("user.dir") + "/res/triangular_mesh.svg");
         
         return svgwrite;
 	}
@@ -88,8 +88,8 @@ public class VoronoiMesh {
 		}
 		
         SVGUtil svgwrite = new SVGUtil(edges, null);
-        svgwrite.createSVG(System.getProperty("user.dir") + "/voronoi_mesh.svg");
-        
+        svgwrite.createSVG(System.getProperty("user.dir") + "/res/voronoi_mesh.svg");
+
         return svgwrite;
 	}
 	

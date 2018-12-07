@@ -32,15 +32,19 @@ public class KnotworkGraph {
 
         // create control sets:
         this.controlSets = this.getControlSets();
+        System.out.println(">> Control Sets Created \t size: " + this.controlSets.size());
 
         // sets over/under for every knotnode(pair)
         determineOverUnderPattern();
+        System.out.println(">> Over-under Pattern Determined");
 
         // create curve list:
         this.curveLists = this.createCurveLists();
+        System.out.println(">> Curve Lists Created");
 
         // create list with curves that are overpasses (go on top at crossing)
         this.overpassCurveList = this.createOverpassCurveList();
+        System.out.println(">> Overpass Curve List Created");
     }
 
     private ArrayList<OverpassCurve> createOverpassCurveList() {
