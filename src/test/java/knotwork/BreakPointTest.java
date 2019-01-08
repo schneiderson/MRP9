@@ -13,7 +13,7 @@ public class BreakPointTest
         System.out.println(crossing.normVector);
 
         //crossing.setBreakpoint(2);
-        //BaseNode meta = crossing.getMetaPoint(new BaseNode(new Coordinate(2,0), new Vector2D(0,1)));
+        //KnotNode meta = crossing.getMetaPoint(new KnotNode(new Coordinate(2,0), new Vector2D(0,1)));
 
         //System.out.println(meta);
     }

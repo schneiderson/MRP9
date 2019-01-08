@@ -1,6 +1,8 @@
 package svg;
 
+import knotwork.Crossing;
 import knotwork.Edge;
+import knotwork.KnotNode;
 import knotwork.curve.CubicBezier;
 import knotwork.curve.Curve;
 import knotwork.curve.OverpassCurve;
@@ -101,11 +103,12 @@ public class SVGUtil {
     }
 
     public void createSVG(String path, boolean includeMesh){
-        try{
+        try
+        {
             // set up color iterator for the different curve lists:
             String[] colorArray = new String[]{"red", "green", "blue", "yellow", "purple", "cyan", "orange"};
             // the color list to signify normal edges vs those with breakpoints
-            String[] edgeColorArray = new String[] {"rgb(0,0,0)", "rgb(0,0,255)", "rgb(255,255,0)"};
+            String[] edgeColorArray = new String[]{"rgb(0,0,0)", "rgb(0,0,255)", "rgb(255,255,0)"};
             Iterator<String> colors = MathUtil.cycle(colorArray);
             String outlineColor = "black";
             String strokeWidthWide = "30";
@@ -113,7 +116,8 @@ public class SVGUtil {
 
             // find largest x and y coordinates
             double x_max = 0, y_max = 0;
-            for (Coordinate node: nodes) {
+            for (Coordinate node : nodes)
+            {
                 x_max = max(x_max, node.x);
                 y_max = max(y_max, node.y);
             }
@@ -125,11 +129,13 @@ public class SVGUtil {
             // get the root element (the svg element)
             Element svgRoot = doc.getDocumentElement();
 
-            if (includeMesh) {
+            if (includeMesh)
+            {
                 // create the line for each edge
-                for (Edge e : edges) {
+                for (Edge e : edges)
+                {
                     Element line = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
-                    line.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:"+edgeColorArray[e.breakpoint]+";stroke-width:1");
+                    line.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:" + edgeColorArray[e.breakpoint] + ";stroke-width:1");
                     line.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(e.c1.x));
                     line.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(e.c1.y));
                     line.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(e.c2.x));
@@ -137,19 +143,36 @@ public class SVGUtil {
 
                     // attach the line to the svg root element
                     svgRoot.appendChild(line);
+
+                    KnotNode c;
+                    if (e.hasBreakpoint())
+                    {
+                        Crossing cr = new Crossing(e);
+                       //c = cr.getMetaPoint()
+                    }
+
+                    Element node = doc.createElementNS(svgNS, SVGConstants.SVG_CIRCLE_TAG);
+                    //node.setAttributeNS(null, SVGConstants.SVG_CX_ATTRIBUTE, Double.toString(n.x));
+                    //node.setAttributeNS(null, SVGConstants.SVG_CY_ATTRIBUTE, Double.toString(n.y));
+                    node.setAttributeNS(null, SVGConstants.SVG_R_ATTRIBUTE, "10");
+                    node.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, "red");
+
+                    svgRoot.appendChild(node);
                 }
             }
 
             // create curves between knot nodes:
-            for (ArrayList<Curve> curveList: this.curveLists){
+            for (ArrayList<Curve> curveList : this.curveLists)
+            {
                 String curveListColor = colors.next();
-                for (Curve curve : curveList){
+                for (Curve curve : curveList)
+                {
                     CubicBezier cbCurve = curve.getCubicBezierPoints();
 
                     // wide thread:
                     Element curvePathWide = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
                     curvePathWide.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
-                            "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                            "M" + cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
                                     "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
                                     cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
                                     cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
@@ -161,7 +184,7 @@ public class SVGUtil {
                     // narrow thread:
                     Element curvePathNarrow = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
                     curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
-                            "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                            "M" + cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
                                     "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
                                     cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
                                     cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
@@ -177,14 +200,15 @@ public class SVGUtil {
             }
 
             // apply over-under pattern:
-            for (OverpassCurve overpassCurve : overpassCurveList) {
+            for (OverpassCurve overpassCurve : overpassCurveList)
+            {
                 String color = colorArray[overpassCurve.getId() % colorArray.length];
 
                 CubicBezier cbCurve = overpassCurve.getCurve1().getCubicBezierPoints();
                 // wide thread:
                 Element curvePathWide = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
                 curvePathWide.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
-                        "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                        "M" + cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
                                 "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
                                 cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
                                 cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
@@ -196,7 +220,7 @@ public class SVGUtil {
                 // narrow thread:
                 Element curvePathNarrow = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
                 curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
-                        "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                        "M" + cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
                                 "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
                                 cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
                                 cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
@@ -217,7 +241,7 @@ public class SVGUtil {
                 // wide thread:
                 Element curvePathWide2 = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
                 curvePathWide2.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
-                        "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                        "M" + cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
                                 "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
                                 cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
                                 cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y
@@ -229,7 +253,7 @@ public class SVGUtil {
                 // narrow thread:
                 Element curvePathNarrow2 = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
                 curvePathNarrow2.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
-                        "M"+ cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
+                        "M" + cbCurve.getAnchor1().x + "," + cbCurve.getAnchor1().y + " " +
                                 "C" + cbCurve.getControl1().x + "," + cbCurve.getControl1().y + " " +
                                 cbCurve.getControl2().x + "," + cbCurve.getControl2().y + " " +
                                 cbCurve.getAnchor2().x + "," + cbCurve.getAnchor2().y

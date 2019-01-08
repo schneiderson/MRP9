@@ -45,4 +45,9 @@ public class Edge {
     public Double getLength() {
         return c1.distance(c2);
     }
+
+    public boolean hasBreakpoint()
+    {
+        return (this.breakpoint == 1 || this.breakpoint == 2);
+    }
 }

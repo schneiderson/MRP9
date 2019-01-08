@@ -181,22 +181,43 @@ public class KnotworkGraph {
 
     public Coordinate getNextJunction(KnotNode node){
         Crossing cross = getCrossingForNode(node);
-        // to find correct junction, create a helper vector from midpoint to endpoint of edge
-        Vector2D hv1 = new Vector2D(cross.edge.midpoint, cross.edge.c1);
-
-        // calculate the difference in angle from helper vector to norm vector
-        Double diffAngle1 = cross.normVector.angleTo(hv1);
-        Double diffAngleNode = cross.normVector.angleTo(node.getVector());
 
         Coordinate junction;
-        // if difference in angle of node vector and helper vector have the same sign they point in the "same" direction
-        if(diffAngle1 * diffAngleNode >= 0){
-            // same sign
-            junction = cross.edge.c1;
-        } else {
-            // different sign
-            junction = cross.edge.c2;
-        }
+        //if(!cross.hasBreakPoint() || cross.breakpoint == 1)
+        //{
+            // to find correct junction, create a helper vector from midpoint to endpoint of edge
+            Vector2D hv1 = new Vector2D(cross.edge.midpoint, cross.edge.c1);
+
+            // calculate the difference in angle from helper vector to norm vector
+            Double diffAngle1 = cross.normVector.angleTo(hv1);
+            Double diffAngleNode = cross.normVector.angleTo(node.getVector());
+
+            // if difference in angle of node vector and helper vector have the same sign they point in the "same" direction
+            if (diffAngle1 * diffAngleNode >= 0)
+            {
+                if (cross.breakpoint == 2)
+                {junction = cross.edge.c2;}
+                else// same sign
+                {junction = cross.edge.c1;}
+            } else
+            {
+                if (cross.breakpoint == 2)
+                {junction = cross.edge.c1;}
+                else// different sign
+                {junction = cross.edge.c2;}
+            }
+        /*}
+        else // in case of breakpoint type 2
+        {
+            //the end that the node is closest to is the next junction
+            double dist1 = node.pos.distance(cross.edge.c1);
+            double dist2 = node.pos.distance(cross.edge.c2);
+            if (dist1 < dist2)
+            {junction = cross.edge.c1;}
+            else
+            {junction = cross.edge.c2;}
+        }*/
+
         return junction;
     }
 
@@ -323,7 +344,9 @@ public class KnotworkGraph {
         for (Edge incidentEdge : incidentEdges) {
             Crossing crossing = getCrossingForEdge(incidentEdge);
             // nodePair must be opposite orientation of current node (if right, then left... etc.)
-            if(node.isLeftNode()){
+
+            if(node.isLeftNode())
+            {
                 nodePair = crossing.rightNodePair;
             }
             if(node.isRightNode()) {

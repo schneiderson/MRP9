@@ -34,7 +34,8 @@ public class Crossing {
         rightNodePair = new KnotNodePair(firstRightNode);
     }
 
-    public KnotNodePair getPairByNode(KnotNode node){
+    public KnotNodePair getPairByNode(KnotNode node)
+    {
         if(leftNodePair.contains(node)){
             return leftNodePair;
         } else if(rightNodePair.contains(node)){
@@ -61,13 +62,6 @@ public class Crossing {
         return null;
     }
 
-    /*public void setBreakpoint(int type)
-    {
-        if (type == 0 || type == 1 || type == 2)
-        {this.breakpoint = type;}
-    }
-    */
-
     private void setBreakPointPair()
     {
         if (this.breakpoint == 1)
@@ -89,13 +83,15 @@ public class Crossing {
     //Creates meta point if the crossing is marked as a break point
     public KnotNode getMetaPoint(KnotNode prevNode)
     {
-        if (!(this.breakpoint == 1 || this.breakpoint == 2)) {return null;}
+        if (!this.hasBreakPoint()) {return null;}
 
         Vector2D originVec = new Vector2D(prevNode.pos, this.pos);
         Coordinate posMeta, negMeta;
         Vector2D v1, v2;
-        if (this.breakpoint == 1)
+        boolean rightNode;
+        if (this.breakpoint == 1) // type 1: wall
         {
+            rightNode = prevNode.isRightNode();
             posMeta = new Coordinate(this.pos.x + this.normVector.toCoordinate().x,
                     this.pos.y + this.normVector.toCoordinate().y);
             negMeta = new Coordinate(this.pos.x - this.normVector.toCoordinate().x,
@@ -104,8 +100,9 @@ public class Crossing {
             v1 =  this.normVector.rotateByQuarterCircle(1);
             v2 =  this.normVector.rotateByQuarterCircle(3);
         }
-        else
+        else // type 2: ghost
         {
+            rightNode = !prevNode.isRightNode();
             //Get the midpoints between the crossing and the edge ends
             posMeta = new Coordinate(Math.round((this.edge.c1.x + this.pos.x) / 2d),
                     Math.round((this.edge.c1.y + this.pos.y) / 2d));
@@ -115,20 +112,37 @@ public class Crossing {
             v1 =  this.normVector;
             v2 =  this.normVector.rotateByQuarterCircle(2);
         }
-
-        double posMetaDist = posMeta.distance(prevNode.pos);
-        double negMetaDist = negMeta.distance(prevNode.pos);
         Double angle1 = originVec.angleTo(v1);
         Double angle2 = originVec.angleTo(v2);
         Vector2D vec; Coordinate meta;
         if(abs(angle1) < abs(angle2)) { vec = v1; }
         else { vec = v2; }
-        if(posMetaDist < negMetaDist) {meta = posMeta;}
-        else {meta = negMeta;}
 
-        KnotNode newMeta = new KnotNode(meta, vec, prevNode.isRightNode(), this);
-        this.metaPoints.add(newMeta);
-        return newMeta;
+        if(this.metaPoints.size() == 0) //if this is the first meta point
+        {
+            double posMetaDist = posMeta.distance(prevNode.pos);
+            double negMetaDist = negMeta.distance(prevNode.pos);
+            if(posMetaDist < negMetaDist) {meta = posMeta;}
+            else {meta = negMeta;}
+
+            KnotNode newMeta = new KnotNode(meta, vec, rightNode, this);
+            this.metaPoints.add(newMeta);
+            return newMeta;
+        }
+        else //if a meta point has already been used
+        {
+            if(this.metaPoints.contains(posMeta))
+            {
+                this.metaPoints.contains(negMeta);
+                return new KnotNode(negMeta, vec, rightNode, this);
+            }
+            else if (this.metaPoints.contains(negMeta))
+            {
+                this.metaPoints.contains(posMeta);
+                return new KnotNode(posMeta, vec, rightNode, this);
+            }
+        }
+        return null;
     }
 
     public static Vector2D getNormVector(Edge edge){
