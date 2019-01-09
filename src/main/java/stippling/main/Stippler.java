@@ -1,7 +1,6 @@
 package stippling.main;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,9 +25,6 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import org.locationtech.jts.triangulate.quadedge.QuadEdgeSubdivision;
-
-import knotwork.Edge;
-import svg.SVGUtil;
 
 //-----------------------------------------------------------------------------
 
@@ -360,21 +356,68 @@ public class Stippler
 			System.out.println("SCALED NOT FOUND");
 			return;
 		}
-		
+
 		final int wd = scaled.getWidth();
 		final int ht = scaled.getHeight();
-		
+
 		blurred = new BufferedImage(wd, ht, BufferedImage.TYPE_INT_ARGB);
+
 		Graphics2D g2d = (Graphics2D)blurred.getGraphics();
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		
 		g2d.drawImage(scaled, 0, 0, null);
+
+		addBorder();
 		
   		final int blurAmount = overSample * blurFactor;  //sample + 1;
   		blurred = Filters.gaussianBlurFilter(blurAmount, true).filter(blurred, null);
   		blurred = Filters.gaussianBlurFilter(blurAmount, false).filter(blurred, null);
+
+  		removeBorder();
+	}
+
+	/**
+	 * Create border around image
+	 */
+	void addBorder(){
+
+		final int sx = scaled.getWidth();
+		final int sy = scaled.getHeight();
+
+		final int borderWidth = blurFactor;
+
+		int borderedImageWidth = sx + (borderWidth * 2);
+		int borderedImageHeight = sy + (borderWidth * 2);
+
+		BufferedImage img = new BufferedImage(borderedImageWidth, borderedImageHeight, BufferedImage.TYPE_3BYTE_BGR);
+		img.createGraphics();
+
+		Graphics2D g = (Graphics2D) img.getGraphics();
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, borderedImageWidth, borderedImageHeight);
+
+		g.drawImage(blurred, borderWidth, borderWidth, sx + borderWidth, sy + borderWidth,
+				0, 0, sx, sy, Color.YELLOW, null);
+
+		blurred = img;
+
+	}
+
+
+	/**
+	 * Create border around image
+	 */
+	void removeBorder(){
+
+		final int sx = scaled.getWidth();
+		final int sy = scaled.getHeight();
+
+		final int borderWidth = blurFactor;
+		blurred = blurred.getSubimage(borderWidth, borderWidth, sx, sy);
+
+
 	}
 	
 	/** 
