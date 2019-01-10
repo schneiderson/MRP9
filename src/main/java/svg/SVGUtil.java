@@ -110,8 +110,8 @@ public class SVGUtil {
             String[] edgeColorArray = new String[]{"rgb(0,0,0)", "rgb(0,0,255)", "rgb(255,255,0)"};
             Iterator<String> colors = MathUtil.cycle(colorArray);
             String outlineColor = "black";
-            String strokeWidthWide = "30";
-            String strokeWidthNarrow = "24";
+            String strokeWidthWide = "5";
+            String strokeWidthNarrow = "2";
 
             // find largest x and y coordinates
             double x_max = 0, y_max = 0;

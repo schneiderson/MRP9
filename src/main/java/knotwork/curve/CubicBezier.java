@@ -49,14 +49,14 @@ public class CubicBezier extends Curve {
      * @param segmentLengthFraction
      * @return
      */
-    private Coordinate hasIntersection(KnotNode knotNode, Coordinate anchor, Coordinate control, double segmentLengthFraction) {
+    private Coordinate hasIntersection(KnotNode knotNode, Coordinate anchor, Coordinate control, double segmentLengthFraction){
         // Calculate point on anchor line segment segmentLengthFraction away from 'anchor1'
         // on the line perpendicular from this point the possible 'new' control point will be located
         // (where is intersects the tangent line segment (vector))
         Coordinate pointOnAnchorLine =
                 MathUtil.roundCoordinate(lineSegmentAnchorPoints.pointAlong((segmentLengthFraction)), 2d);
 
-        // multiply angle with -1 because y-axis of output (svg) is inverse
+        // multiply angle with -1 because y-axis of output (svg) is inversed
         double angle = -1 * knotNode.getVector().angle(new Vector2D(anchor, pointOnAnchorLine));
         double hypotenuse = anchor.distance(pointOnAnchorLine) / Math.cos(angle);
 

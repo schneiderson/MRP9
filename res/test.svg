@@ -3,7 +3,7 @@
 <line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="300.0" x2="300.0" y2="600.0" />
 <line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="300.0" x2="300.0" y2="300.0" />
 
-<line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="300.0" x2="600.0" y2="600.0" />
-<line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="600.0" x2="300.0" y2="600.0" />
+<!--<line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="300.0" x2="600.0" y2="600.0" />-->
+<!--<line style="stroke:rgb(0,0,0);stroke-width:1" x1="600.0" y1="600.0" x2="300.0" y2="600.0" />-->
 
 </svg>

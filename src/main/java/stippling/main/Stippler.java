@@ -1326,6 +1326,14 @@ public class Stippler
 		return polys;
 	}
 	
+	public float[][] getIntensity(){
+		return intensity;
+	}
+	
+	public void setBlurFactor(int factor){
+		blurFactor = factor;
+	}
+	
 	//-------------------------------------------------------------------------
 
 }
