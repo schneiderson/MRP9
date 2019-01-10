@@ -15,143 +15,141 @@ public class Crossing {
     public Coordinate pos;
     public KnotNodePair leftNodePair;
     public KnotNodePair rightNodePair;
-    public ArrayList<KnotNode> metaPoints = new ArrayList<KnotNode>();
+    public KnotNodePair negMetaPair;
+    public KnotNodePair posMetaPair;
     public Vector2D normVector;
     public Edge edge;
     public int breakpoint = 0;
+    public double metaPointDistance = 20;
 
-    public Crossing(Edge edge){
+
+    public Crossing(Edge edge) {
         this.edge = edge;
         pos = edge.midpoint;
-        this.breakpoint = edge.breakpoint;
+        breakpoint = edge.breakpoint;
+        metaPointDistance = edge.getLength() / 5;
 
         normVector = getNormVector(edge);
 
-        KnotNode firstLeftNode = KnotNode.createFromNormVector(pos, normVector, false, this);
-        KnotNode firstRightNode = KnotNode.createFromNormVector(pos, normVector, true, this);
+        if(breakpoint == 0){ // regular crossing
+            KnotNode firstLeftNode = KnotNode.createFromNormVector(pos, normVector, false, this);
+            KnotNode firstRightNode = KnotNode.createFromNormVector(pos, normVector, true, this);
 
-        leftNodePair = new KnotNodePair(firstLeftNode);
-        rightNodePair = new KnotNodePair(firstRightNode);
-    }
+            leftNodePair = new KnotNodePair(firstLeftNode);
+            rightNodePair = new KnotNodePair(firstRightNode);
 
-    public KnotNodePair getPairByNode(KnotNode node)
-    {
-        if(leftNodePair.contains(node)){
-            return leftNodePair;
-        } else if(rightNodePair.contains(node)){
-            return rightNodePair;
-        }
-        return null;
-    }
+        } else {
+            if(breakpoint == 1){ // breakpoint type 1 (wall)
+                KnotNode posRightNode = KnotNode.createMeta1FromNormVector(pos, normVector, true, this, false, metaPointDistance);
+                KnotNode negRightNode = KnotNode.createMeta1FromNormVector(pos, normVector, true, this, true, metaPointDistance);
 
-    public KnotNodePair getPerpendicularPairByNode(KnotNode node){
-        if(leftNodePair.contains(node)){
-            return rightNodePair;
-        } else if(rightNodePair.contains(node)){
-            return leftNodePair;
-        }
-        return null;
-    }
+                posMetaPair = new KnotNodePair(posRightNode, false);
+                negMetaPair = new KnotNodePair(negRightNode, false);
 
-    public KnotNodePair getPerpendicularPairByNodePair(KnotNodePair nodePair){
-        if(nodePair.equals(leftNodePair)){
-            return rightNodePair;
-        } else if(nodePair.equals(rightNodePair)){
-            return leftNodePair;
-        }
-        return null;
-    }
+            } else { // breakpoint type 2 (ghost)
+                KnotNode posRightNode = KnotNode.createMeta2FromNormVector(pos, normVector, true, this, false, metaPointDistance);
+                KnotNode negRightNode = KnotNode.createMeta2FromNormVector(pos, normVector, true, this, true, metaPointDistance);
 
-    private void setBreakPointPair()
-    {
-        if (this.breakpoint == 1)
-        {
-            Coordinate posMeta = new Coordinate(this.pos.x + this.normVector.toCoordinate().x,
-                    this.pos.y + this.normVector.toCoordinate().y);
-            Coordinate negMeta = new Coordinate(this.pos.x - this.normVector.toCoordinate().x,
-                    this.pos.y - this.normVector.toCoordinate().y);
-            //two vector directions are possible
-            Vector2D v1 =  this.normVector.rotateByQuarterCircle(1);
-            Vector2D v2 =  this.normVector.rotateByQuarterCircle(3);
-        }
-        else if (this.breakpoint == 2)
-        {
+                posMetaPair = new KnotNodePair(posRightNode, false);
+                negMetaPair = new KnotNodePair(negRightNode, false);
 
-        }
-    }
-
-    //Creates meta point if the crossing is marked as a break point
-    public KnotNode getMetaPoint(KnotNode prevNode)
-    {
-        if (!this.hasBreakPoint()) {return null;}
-
-        Vector2D originVec = new Vector2D(prevNode.pos, this.pos);
-        Coordinate posMeta, negMeta;
-        Vector2D v1, v2;
-        boolean rightNode;
-        if (this.breakpoint == 1) // type 1: wall
-        {
-            rightNode = prevNode.isRightNode();
-            posMeta = new Coordinate(this.pos.x + this.normVector.toCoordinate().x,
-                    this.pos.y + this.normVector.toCoordinate().y);
-            negMeta = new Coordinate(this.pos.x - this.normVector.toCoordinate().x,
-                    this.pos.y - this.normVector.toCoordinate().y);
-            //two vector directions are possible
-            v1 =  this.normVector.rotateByQuarterCircle(1);
-            v2 =  this.normVector.rotateByQuarterCircle(3);
-        }
-        else // type 2: ghost
-        {
-            rightNode = !prevNode.isRightNode();
-            //Get the midpoints between the crossing and the edge ends
-            posMeta = new Coordinate(Math.round((this.edge.c1.x + this.pos.x) / 2d),
-                    Math.round((this.edge.c1.y + this.pos.y) / 2d));
-            negMeta = new Coordinate(Math.round((this.edge.c2.x + this.pos.x) / 2d),
-                    Math.round((this.edge.c2.y + this.pos.y) / 2d));
-            //two vector directions are possible
-            v1 =  this.normVector;
-            v2 =  this.normVector.rotateByQuarterCircle(2);
-        }
-        Double angle1 = originVec.angleTo(v1);
-        Double angle2 = originVec.angleTo(v2);
-        Vector2D vec; Coordinate meta;
-        if(abs(angle1) < abs(angle2)) { vec = v1; }
-        else { vec = v2; }
-
-        if(this.metaPoints.size() == 0) //if this is the first meta point
-        {
-            double posMetaDist = posMeta.distance(prevNode.pos);
-            double negMetaDist = negMeta.distance(prevNode.pos);
-            if(posMetaDist < negMetaDist) {meta = posMeta;}
-            else {meta = negMeta;}
-
-            KnotNode newMeta = new KnotNode(meta, vec, rightNode, this);
-            this.metaPoints.add(newMeta);
-            return newMeta;
-        }
-        else //if a meta point has already been used
-        {
-            if(this.metaPoints.contains(posMeta))
-            {
-                this.metaPoints.contains(negMeta);
-                return new KnotNode(negMeta, vec, rightNode, this);
             }
-            else if (this.metaPoints.contains(negMeta))
-            {
-                this.metaPoints.contains(posMeta);
-                return new KnotNode(posMeta, vec, rightNode, this);
+        }
+    }
+
+    public KnotNodePair getPairByNode(KnotNode node) {
+        if(breakpoint > 0){
+            if(posMetaPair.contains(node)){
+                return posMetaPair;
+            } else if(negMetaPair.contains(node)){
+                return negMetaPair;
+            }
+        } else {
+            if (leftNodePair.contains(node)) {
+                return leftNodePair;
+            } else if (rightNodePair.contains(node)) {
+                return rightNodePair;
             }
         }
         return null;
     }
 
-    public static Vector2D getNormVector(Edge edge){
+    public KnotNodePair getPerpendicularPairByNode(KnotNode node) {
+        if(breakpoint > 0) {
+            return null;
+        }
+
+        if (leftNodePair.contains(node)) {
+            return rightNodePair;
+        } else if (rightNodePair.contains(node)) {
+            return leftNodePair;
+        }
+        return null;
+    }
+
+    public KnotNodePair getPerpendicularPairByNodePair(KnotNodePair nodePair) {
+        if (nodePair.equals(leftNodePair)) {
+            return rightNodePair;
+        } else if (nodePair.equals(rightNodePair)) {
+            return leftNodePair;
+        }
+        return null;
+    }
+
+
+    /**
+     * Returns metaPointPair
+     */
+    public KnotNodePair getMetaPointPair(KnotNode prevNode, Coordinate junction) {
+        if (!this.hasBreakPoint()) {
+            return null;
+        }
+
+        if(breakpoint == 1){ // breakpoint type 1 (wall)
+            Vector2D vec = Vector2D.create(pos, junction);
+
+            if( vec.angleTo(posMetaPair.node1.getVector()) == 0 ) {
+                if(posMetaPair.node1.isLeftNode() && prevNode.isRightNode()
+                        || posMetaPair.node1.isRightNode() && prevNode.isLeftNode()){
+                    return posMetaPair;
+                }
+            } else if( vec.angleTo(posMetaPair.node2.getVector()) == 0 ){
+                if(posMetaPair.node2.isLeftNode() && prevNode.isRightNode()
+                        || posMetaPair.node2.isRightNode() && prevNode.isLeftNode()){
+                    return posMetaPair;
+                }
+            }
+
+            return negMetaPair;
+
+        } else { // breakpoint type 2 (ghost)
+            double distancePos = prevNode.getPos().distance(normVector.translate(pos));
+            double distanceNeg = prevNode.getPos().distance(normVector.multiply(-1.0).translate(pos));
+
+            if(distancePos > distanceNeg){
+                if(prevNode.isRightNode()){
+                    return posMetaPair;
+                } else {
+                    return negMetaPair;
+                }
+            } else {
+                if(prevNode.isRightNode()){
+                    return negMetaPair;
+                } else {
+                    return posMetaPair;
+                }
+            }
+        }
+
+    }
+
+    public static Vector2D getNormVector(Edge edge) {
         // get absolute angle (in rad)
         Double absAngleRad = abs(Angle.angle(edge.c1, edge.c2));
 
         // get Norm vector
         Vector2D normVec;
-        if(absAngleRad >= PI/2){
+        if (absAngleRad >= PI / 2) {
             normVec = Vector2D.create(edge.c1, edge.c2).rotate(Angle.toRadians(90));
         } else {
             normVec = Vector2D.create(edge.c1, edge.c2).rotate(Angle.toRadians(-90));
@@ -166,10 +164,10 @@ public class Crossing {
      * @param normalized If set to 'true' angle is normalized to be in the range ( -Pi, Pi ].
      * @return angle in radian
      */
-    public Double getNormVectorAngleRad(boolean normalized){
-        if(normalized){
+    public Double getNormVectorAngleRad(boolean normalized) {
+        if (normalized) {
             return normVector.angle();
-        } else{
+        } else {
             return AngleUtil.getAngleRadiansRescaled(normVector.angle());
         }
     }
@@ -180,12 +178,11 @@ public class Crossing {
      * @param normalized If set to 'true' angle is normalized to be in the range ( -180, 180 ].
      * @return angle in degree
      */
-    public Double getNormVectorAngleDeg(boolean normalized){
+    public Double getNormVectorAngleDeg(boolean normalized) {
         return Angle.toDegrees(getNormVectorAngleRad(normalized));
     }
 
-    public boolean hasBreakPoint()
-    {
+    public boolean hasBreakPoint() {
         return (this.breakpoint == 1 || this.breakpoint == 2);
     }
 }
