@@ -5,19 +5,23 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
 import util.AngleUtil;
 
-public class KnotNode extends BaseNode {
+public class KnotNode {
 
     private boolean right;
     private Crossing crossing;
+    protected Coordinate pos;
+    protected Vector2D vector;
 
     public KnotNode(Coordinate pos, Coordinate to, boolean right, Crossing crossing) {
-        super(pos, new Vector2D(pos, to).normalize());
+        this.pos = pos;
+        this.vector = vector;
         this.crossing = crossing;
         this.right = right;
     }
 
     public KnotNode(Coordinate pos, Vector2D vector, boolean right, Crossing crossing) {
-        super(pos, vector.normalize());
+        this.pos = pos;
+        this.vector = vector;
         this.crossing = crossing;
         this.right = right;
     }
@@ -28,7 +32,8 @@ public class KnotNode extends BaseNode {
          * [Except for the Crossing object]
          * Also inverts the vector (multiplying by -1)
          * */
-        super(knotNode.pos, knotNode.vector);
+        this.pos = pos;
+        this.vector = vector;
         this.pos = (Coordinate) knotNode.pos.clone();
         this.right = knotNode.right;
         this.crossing = knotNode.crossing;
@@ -52,6 +57,92 @@ public class KnotNode extends BaseNode {
         return new KnotNode(pos, vec, right, crossing);
     }
 
+    // type 1: wall
+    public static KnotNode createMeta1FromNormVector(Coordinate pos, Vector2D normVec, boolean right, Crossing crossing,
+                                                     boolean neg, double metaPointDistance) {
+        Vector2D vec;
+        Coordinate position;
+
+        if (neg) {
+            position = normVec.multiply(-metaPointDistance).translate(pos);
+
+        } else {
+            position = normVec.multiply(metaPointDistance).translate(pos);
+
+        }
+
+        // two vector directions are possible
+        if (neg && right || !neg && !right) {
+            vec = normVec.rotateByQuarterCircle(3);
+        } else {
+            vec = normVec.rotateByQuarterCircle(1);
+        }
+
+        return new KnotNode(position, vec, right, crossing);
+
+    }
+
+    // type 2: ghost
+    public static KnotNode createMeta2FromNormVector(Coordinate pos, Vector2D normVec, boolean right, Crossing crossing,
+                                                     boolean neg, double metaPointDistance) {
+        Vector2D vec;
+        Coordinate position;
+
+        // Get the midpoints between the crossing and the edge ends
+        if (!neg) {
+            position = normVec.rotateByQuarterCircle(1).multiply(metaPointDistance).translate(pos);
+        } else {
+            position = normVec.rotateByQuarterCircle(3).multiply(metaPointDistance).translate(pos);
+        }
+
+        // two vector directions are possible
+        if(neg && !right || !neg && right){
+            vec = normVec;
+        } else {
+            vec = normVec.rotateByQuarterCircle(2);
+        }
+
+        return new KnotNode(position, vec, right, crossing);
+
+    }
+
+    public Vector2D getVector() {
+        return vector;
+    }
+
+    public Coordinate getPos() {
+        return pos;
+    }
+
+    /**
+     * Returns the angle of the vector in radian
+     *
+     * @param normalized If set to 'true' angle is normalized to be in the range ( -Pi, Pi ].
+     * @return angle in radian
+     */
+    public Double getAngleRadians(boolean normalized) {
+        if (normalized) {
+            return vector.angle();
+        } else {
+            return AngleUtil.getAngleRadiansRescaled(vector.angle());
+        }
+    }
+
+    /**
+     * Returns the angle of the vector in degree
+     *
+     * @param normalized If set to 'true' angle is normalized to be in the range ( -180, 180 ].
+     * @return angle in degree
+     */
+    public Double getAngleDegree(boolean normalized) {
+        return Angle.toDegrees(getAngleRadians(normalized));
+    }
+
+    @Override
+    public String toString() {
+        return "Position: " + this.pos + " , Vector: " + this.vector;
+    }
+
     public boolean isRightNode() {
         return right;
     }
@@ -64,7 +155,7 @@ public class KnotNode extends BaseNode {
         return crossing;
     }
 
-    public KnotNodePair getPrependicularKnotNodePair(){
+    public KnotNodePair getPrependicularKnotNodePair() {
         return crossing.getPerpendicularPairByNode(this);
     }
 
@@ -73,7 +164,12 @@ public class KnotNode extends BaseNode {
     }
 
     public Boolean getOverpass() {
-        return crossing.getPairByNode(this).getOverpass();
+        if (crossing.getPairByNode(this) == null) //for breakpoints
+        {
+            return true;
+        } else {
+            return crossing.getPairByNode(this).getOverpass();
+        }
     }
 
     public void setOverpass(boolean overpass) {
