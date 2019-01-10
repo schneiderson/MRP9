@@ -140,7 +140,6 @@ public class Crossing {
                 }
             }
         }
-
     }
 
     public static Vector2D getNormVector(Edge edge) {

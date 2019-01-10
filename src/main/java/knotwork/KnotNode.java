@@ -65,8 +65,10 @@ public class KnotNode {
 
         if (neg) {
             position = normVec.multiply(-metaPointDistance).translate(pos);
+
         } else {
             position = normVec.multiply(metaPointDistance).translate(pos);
+
         }
 
         // two vector directions are possible
