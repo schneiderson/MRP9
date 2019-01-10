@@ -6,14 +6,24 @@ public class Edge {
     public Coordinate c1;
     public Coordinate c2;
     public Coordinate midpoint;
+    public int breakpoint = 0;
 
     public Edge(Coordinate c1, Coordinate c2) {
         this.c1 = c1;
         this.c2 = c2;
-        this.midpoint = getCrossing();
+        this.midpoint = getMidpoint();
     }
 
-    private Coordinate getCrossing() {
+    public Edge(Coordinate c1, Coordinate c2, int breakpoint)
+    {
+        this.c1 = c1;
+        this.c2 = c2;
+        this.midpoint = getMidpoint();
+        if (breakpoint == 1 || breakpoint == 2)
+        {this.breakpoint = breakpoint;}
+    }
+
+    private Coordinate getMidpoint() {
         return new Coordinate(Math.round((c1.x + c2.x) / 2d), Math.round((c1.y + c2.y) / 2d));
     }
 
@@ -34,5 +44,10 @@ public class Edge {
 
     public Double getLength() {
         return c1.distance(c2);
+    }
+
+    public boolean hasBreakpoint()
+    {
+        return (this.breakpoint == 1 || this.breakpoint == 2);
     }
 }

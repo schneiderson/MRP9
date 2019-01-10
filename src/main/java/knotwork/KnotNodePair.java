@@ -15,14 +15,22 @@ public class KnotNodePair {
         this.node2 = node2;
     }
 
-    public KnotNodePair(KnotNode node1){
+    public KnotNodePair(KnotNode node1) {
+        this(node1, true);
+    }
+
+    public KnotNodePair(KnotNode node1, boolean sameOrientation){
         this.node1 = node1;
 
         // rotate vector by 180 degrees
         Double rotation = Angle.toRadians(180);
         Vector2D newVec = node1.getVector().rotate(rotation);
 
-        this.node2 = new KnotNode(node1.getPos(), newVec, node1.isRightNode(), node1.getCrossing());
+        if(sameOrientation){
+            this.node2 = new KnotNode(node1.getPos(), newVec, node1.isRightNode(), node1.getCrossing());
+        } else {
+            this.node2 = new KnotNode(node1.getPos(), newVec, !node1.isRightNode(), node1.getCrossing());
+        }
     }
 
     public Boolean getOverpass() {
