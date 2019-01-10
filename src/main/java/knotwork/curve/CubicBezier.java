@@ -14,6 +14,7 @@ public class CubicBezier extends Curve {
     private Coordinate control1;
     private Coordinate control2;
     private LineSegment lineSegmentAnchorPoints;
+    private boolean partCurve = false;
 
     public CubicBezier(KnotNode kn1, KnotNode kn2) {
         super(kn1, kn2);
@@ -25,14 +26,25 @@ public class CubicBezier extends Curve {
         this.determineControlPoints();
     }
 
+    public CubicBezier(KnotNode kn1, KnotNode kn2, Coordinate anchor1, Coordinate control1, Coordinate anchor2, Coordinate control2, boolean partCurve) {
+        super(kn1, kn2);
+
+        this.anchor1 = anchor1;
+        this.anchor2 = anchor2;
+        this.control2 = control2;
+        this.control1 = control1;
+        this.partCurve = partCurve;
+    }
+
+
     @Override
     public CubicBezier getCubicBezierPoints() {
         return this;
     }
 
     private void determineControlPoints() {
-        this.control1 = this.knotNode1.getVector().multiply(1.0 * this.knotNode1.getCrossing().edge.getLength()).translate(anchor1);
-        this.control2 = this.knotNode2.getVector().multiply(1.0 * this.knotNode2.getCrossing().edge.getLength()).translate(anchor2);
+        this.control1 = this.knotNode1.getVector().multiply(.75 * this.knotNode1.getCrossing().edge.getLength()).translate(anchor1);
+        this.control2 = this.knotNode2.getVector().multiply(.75 * this.knotNode2.getCrossing().edge.getLength()).translate(anchor2);
 
         this.control1 = MathUtil.roundCoordinate(this.control1, 2d);
         this.control2 = MathUtil.roundCoordinate(this.control2, 2d);
@@ -138,4 +150,7 @@ public class CubicBezier extends Curve {
         return control2;
     }
 
+    public boolean isPartCurve() {
+        return partCurve;
+    }
 }

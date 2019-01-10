@@ -18,16 +18,16 @@ public class Knotwork {
         //alternative:
         // choose different input image path AND/OR different number of stipples (= mesh density)
         // default: imgPath = "res/robot-2.jpg", numDots = 1000
-         VoronoiMesh mesh = new VoronoiMesh("res/shaded_cube.png", 300);
+//         VoronoiMesh mesh = new VoronoiMesh("res/shaded_cube.png", 300);
+//
+////         SVGUtil svgutil = mesh.createTriangularMesh();
+//        // or:
+//        //SVGUtil svgutil = mesh.createVoronoiMesh();
+//        // or: (from svg mesh representation)
+//         SVGUtil svgutil = mesh.createQuadrangularMesh();
 
-//         SVGUtil svgutil = mesh.createTriangularMesh();
-        // or:
-        //SVGUtil svgutil = mesh.createVoronoiMesh();
-        // or: (from svg mesh representation)
-         SVGUtil svgutil = mesh.createQuadrangularMesh();
-
-        //SVGUtil svgutil = new SVGUtil(null, null);
-        //svgutil.readFromSvg("res/test2.svg");
+        SVGUtil svgutil = new SVGUtil(null, null);
+        svgutil.readFromSvg("res/test5.svg");
 
         // create knotwork graph
         System.out.println("\n> Creating Graph");
@@ -36,12 +36,13 @@ public class Knotwork {
         // create svg from knotwork graph
         SVGUtil svgUtilKnotwork = new SVGUtil(svgutil.edges, svgutil.nodes, graph.curveLists, graph.overpassCurveList);
         // save svg
-        svgUtilKnotwork.createSVG(System.getProperty("user.dir") + "/res/curve_2.svg", true);
+        svgUtilKnotwork.createSVG(System.getProperty("user.dir") + "/res/curve_2.svg", false);
         System.out.println("\n> SVG Created");
 
 
         // Print control and curve sets/lists
         System.out.println("Number of controlSets = " + graph.controlSets.size() + "\n");
+
 //        for (int i = 0; graph.controlSets.size() > i; i++) {
 //            System.out.println("Control set " + (1 + i) + " has size " + graph.controlSets.get(i).size());
 //            for (KnotNode kN : graph.controlSets.get(i)){
