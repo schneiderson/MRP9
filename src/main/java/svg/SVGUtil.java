@@ -1,8 +1,6 @@
 package svg;
 
-import knotwork.Crossing;
 import knotwork.Edge;
-import knotwork.KnotNode;
 import knotwork.curve.CubicBezier;
 import knotwork.curve.Curve;
 import knotwork.curve.OverpassCurve;
@@ -31,12 +29,13 @@ public class SVGUtil {
     public ArrayList<Coordinate> nodes = new ArrayList<Coordinate>();
     public ArrayList<ArrayList<Curve>> curveLists = new ArrayList<>();
     public ArrayList<OverpassCurve> overpassCurveList = new ArrayList<>();
+    private Double distanceTolerance = 0.5;
 
 
     public SVGUtil(ArrayList<Edge> edges, ArrayList<Coordinate> nodes) {
         if (edges != null) {
             for (Edge e : edges) {
-                if (!containsEdge(e)) {
+                if (!containsEdge(e, 0.0)) {
                     this.edges.add(e);
                 }
             }
@@ -78,9 +77,9 @@ public class SVGUtil {
     }
 
 
-    private boolean containsEdge(Edge edge) {
+    private boolean containsEdge(Edge edge, Double tolerance) {
         for (Edge e : edges) {
-            if (e.equals(edge)) {
+            if (e.equals(edge, tolerance)) {
                 return true;
             }
         }
@@ -139,14 +138,6 @@ public class SVGUtil {
 
                     // attach the line to the svg root element
                     svgRoot.appendChild(line);
-
-                    Element node = doc.createElementNS(svgNS, SVGConstants.SVG_CIRCLE_TAG);
-                    //node.setAttributeNS(null, SVGConstants.SVG_CX_ATTRIBUTE, Double.toString(n.x));
-                    //node.setAttributeNS(null, SVGConstants.SVG_CY_ATTRIBUTE, Double.toString(n.y));
-                    node.setAttributeNS(null, SVGConstants.SVG_R_ATTRIBUTE, "10");
-                    node.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, "red");
-
-                    svgRoot.appendChild(node);
                 }
             }
 
@@ -298,6 +289,28 @@ public class SVGUtil {
         }
     }
 
+    public void mergeCloseCoordinates(ArrayList<Edge> edges){
+        for (Edge e1 : edges) {
+            for (Edge e2 : edges){
+                if(e1.equals(e2)){
+                    continue;
+                }
+                if(!e1.c1.equals(e2.c1) && e1.c1.distance(e2.c1) < distanceTolerance){
+                    e2.c1 = e1.c1;
+                }
+                if(!e1.c1.equals(e2.c2) && e1.c1.distance(e2.c2) < distanceTolerance){
+                    e2.c2 = e1.c1;
+                }
+                if(!e1.c2.equals(e2.c1) && e1.c2.distance(e2.c1) < distanceTolerance){
+                    e2.c1 = e1.c2;
+                }
+                if(!e1.c2.equals(e2.c2) && e1.c2.distance(e2.c2) < distanceTolerance){
+                    e2.c2 = e1.c2;
+                }
+            }
+        }
+    }
+
 
     public void readFromSvg(String path) {
         try {
@@ -320,12 +333,12 @@ public class SVGUtil {
                         String name = attribs.item(j).getNodeName();
                         if (name.equals("x1") || name.equals("y1") || name.equals("x2") || name.equals("y2")) {
                             coor.put(name, Double.parseDouble(attribs.item(j).getNodeValue()));
-                        } else if (name.equals("style")) //read what type of edge this is
-                        {
-                            String rgbColor = attribs.item(j).getNodeValue().split("[:;]")[1]; //gets 'rgb(x,y,z)' part
-                            if (rgbColor.equals("rgb(0,0,255)")) {
+
+                        } else if (name.equals("style")) { //read what type of edge this is
+                            String nodeValue = attribs.item(j).getNodeValue();
+                            if (nodeValue.matches(".*stroke:(rgb\\(0,\\s?0,\\s?255\\)|#0000ff).*")) {
                                 edgeType = 1;
-                            } else if (rgbColor.equals("rgb(255,255,0)")) {
+                            } else if (nodeValue.matches(".*stroke:(rgb\\(255,\\s?255,\\s?0\\)|#ffff00).*")) {
                                 edgeType = 2;
                             } else {
                                 edgeType = 0;
@@ -337,13 +350,18 @@ public class SVGUtil {
                     Coordinate c2 = new Coordinate(coor.get("x2"), coor.get("y2"));
                     Edge newEdge = new Edge(c1, c2, edgeType);
 
-                    if (!containsEdge(newEdge)) {
+                    // filter out redundant edges
+                    if (!containsEdge(newEdge, distanceTolerance)) {
                         edges.add(newEdge);
                     }
 
                 }
             }
 
+            // merge close coordinates
+            mergeCloseCoordinates(edges);
+
+            // extract nodes from edges
             getNodesFromEdges(edges);
 
         } catch (IOException ex) {

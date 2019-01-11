@@ -34,6 +34,18 @@ public class Edge {
         return false;
     }
 
+    public boolean equals(Edge other, Double tolerance){
+        if((c1.distance(other.c1) < tolerance && c2.distance(other.c2) < tolerance)
+                || (c1.distance(other.c2) < tolerance && c2.distance(other.c1) < tolerance)){
+            System.out.println("filtering out duplicate based on tolerance: " + tolerance);
+            System.out.println("Current, C1: " + c1 + " C2: "+ c2 );
+            System.out.println("Other, C1: " + other.c1 + " C2: "+ other.c2 );
+            System.out.println("----");
+            return true;
+        }
+        return false;
+    }
+
     public boolean isIncidentToVertex(Coordinate node){
         return (c1.equals(node) || c2.equals(node));
     }
