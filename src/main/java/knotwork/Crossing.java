@@ -6,6 +6,7 @@ import org.locationtech.jts.math.Vector2D;
 import util.AngleUtil;
 
 import java.util.ArrayList;
+import java.util.Vector;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
@@ -100,27 +101,19 @@ public class Crossing {
     /**
      * Returns metaPointPair
      */
-    public KnotNodePair getMetaPointPair(KnotNode prevNode, Coordinate junction) {
+    public KnotNodePair getMetaPointPair(KnotNode prevNode, Coordinate prevJunction) {
         if (!this.hasBreakPoint()) {
             return null;
         }
 
         if(breakpoint == 1){ // breakpoint type 1 (wall)
-            Vector2D vec = Vector2D.create(pos, junction);
+            Vector2D vec1 = Vector2D.create(pos, prevNode.getPos());
 
-            if( vec.angleTo(posMetaPair.node1.getVector()) == 0 ) {
-                if(posMetaPair.node1.isLeftNode() && prevNode.isRightNode()
-                        || posMetaPair.node1.isRightNode() && prevNode.isLeftNode()){
-                    return posMetaPair;
-                }
-            } else if( vec.angleTo(posMetaPair.node2.getVector()) == 0 ){
-                if(posMetaPair.node2.isLeftNode() && prevNode.isRightNode()
-                        || posMetaPair.node2.isRightNode() && prevNode.isLeftNode()){
-                    return posMetaPair;
-                }
+            if( abs(vec1.angleTo(normVector)) < PI/2 ){
+                return posMetaPair;
+            } else {
+                return negMetaPair;
             }
-
-            return negMetaPair;
 
         } else { // breakpoint type 2 (ghost)
             double distancePos = prevNode.getPos().distance(normVector.translate(pos));
