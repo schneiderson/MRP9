@@ -520,15 +520,18 @@ public class MyImage {
 	}
 	
 	/** 
-	 * Determine intensity from image.
+	 * Turn image into grayscale image.
 	 */
-	public void determineIntensity()
+	public void toGrayscale()
 	{
 		for (int y = 0; y < height; y++)
 			for (int x = 0; x < width; x++)
 			{
-				final int rgba = image.getRGB(x, y);
-				setPixelToValue(x, y, (int) Math.round(intensity(rgba)*255));
+				final int rgba = getPixel(x, y);
+				int intensity = (int) Math.round(intensity(rgba));
+				setRed(x, y, intensity);
+				setGreen(x, y, intensity);
+				setBlue(x, y, intensity);
 			}
 		writeImage("res/GRAYSCALE.png");
 	}
@@ -537,7 +540,7 @@ public class MyImage {
 
 	/**
 	 * @param rgba
-	 * @return Intensity in range 0..1.
+	 * @return Intensity.
 	 */
 	public static double intensity(final int rgba)
 	{
@@ -545,21 +548,23 @@ public class MyImage {
 		final int g = (rgba >>  8) & 0xff;
 		final int b = (rgba      ) & 0xff;
 		//final int a = (rgba >> 24) & 0xff;
-		final double value = ((r / 255.0) + (g / 255.0) + (b / 255.0)) / 3.0;
+		final double value = (r + g + b) / 3.0;
 		return value;
 	}
 	
 	public void quantize(int noBins) {
 		for (int y = 0; y < height; y++){
 			for (int x = 0; x < width; x++){
-//				setPixelToValue(x, y, Math.round(Math.round(getPixel(x, y)*noBins) *(255/noBins)));
-				setRed(x, y, Math.round(getRed(x, y)*noBins/255)*noBins);
-				setGreen(x, y, Math.round(getGreen(x, y)*noBins/255) *noBins);
-				setBlue(x, y, Math.round(getBlue(x, y)*noBins/255) *noBins);
+//				int quantized = Math.round(Math.round(getRed(x, y)*noBins) *(255/noBins));
+				int quantized = (int) Math.round(Math.ceil((getRed(x, y)/(255/noBins)))*(255/noBins));
+//				int quantized = 33;
+				setRed(x, y, quantized);
+				setGreen(x, y, quantized);
+				setBlue(x, y, quantized);
 			}
 		}
 		writeImage("res/QUANTIZED.png");
-		//displayImage();
+		displayImage();
 	}
 	
 	public void calculateGradient(){
@@ -573,7 +578,6 @@ public class MyImage {
 			}
 		}
 		makeBinary();
-		displayImage();
 	}
 	
 	private void makeBinary(){
@@ -611,6 +615,12 @@ public class MyImage {
 		for (int y = 0; y < height; y++)
 			for (int x = 0; x < width; x++)
 				setPixelToValue(x, y, value);
+	}
+	
+	public void setOpaque(){
+		for (int y = 0; y < height; y++)
+			for (int x = 0; x < width; x++)
+				setAlpha(x, y, 255);
 	}
 	
 	public void displayImage(){

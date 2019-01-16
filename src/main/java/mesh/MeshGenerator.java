@@ -61,17 +61,20 @@ public class MeshGenerator{
      * Initialise mesh generation.
      */
 	public void init(){
+		// operations on RGBA image
 		img.blurImage(blurFactor);
-		//img.determineIntensity();
-		//img.quantize(noBins);
+		img.setOpaque();
+		img.toGrayscale();
+		img.quantize(noBins);
+
+		// operations on binary image
 		img.calculateGradient();
-		
 		LineOperations lineOps = new LineOperations();
 		map = img.arrayToMap();
 		ArrayList<ArrayList<Coordinate>> lines = lineOps.extractLines(map);
 		ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
 		map = lineOps.linesToPixels(contour, sx, sy);
-		//figureMap = lineOps.contourMap(featureLines, sx, sy);
+//		//figureMap = lineOps.contourMap(featureLines, sx, sy);
 		img.invertBinary();
 		map = distanceMap(img.arrayToMap());
 		drawMesh(lineOps.extractLines(map));
