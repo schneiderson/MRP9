@@ -31,8 +31,7 @@ public class MeshGenerator{
 	float[][] map;
 	float[][] figureMap;
 	ArrayList<ArrayList<Coordinate>> featureLines;
-	int sx;
-	int sy;
+	int width, height;
 	double ringDist = 1;
 	
 	// Constructor:
@@ -52,8 +51,8 @@ public class MeshGenerator{
 		this.noBins = noBins;
 		this.blurFactor = blurFactor;
 		this.cellWidth = cellWidth;
-    	this.sx = img.getImageHeight();
-    	this.sy = img.getImageHeight();
+    	this.width = img.getImageWidth();
+    	this.height = img.getImageHeight();
 	}
 	
 	
@@ -66,18 +65,18 @@ public class MeshGenerator{
 		img.setOpaque();
 		img.toGrayscale();
 		img.quantize(noBins);
+		img.calculateGradient(); // (also transforms into binary image)
 
 		// operations on binary image
-		img.calculateGradient();
-		LineOperations lineOps = new LineOperations();
-		map = img.arrayToMap();
-		ArrayList<ArrayList<Coordinate>> lines = lineOps.extractLines(map);
+		Lines lineOps = new Lines(width, height);
+		ArrayList<ArrayList<Coordinate>> lines = lineOps.extractLines(img.toMap());
+		drawMesh(lines);
 		ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
-		map = lineOps.linesToPixels(contour, sx, sy);
+//		img.update(lineOps.linesToPixels(contour, width, height));
 //		//figureMap = lineOps.contourMap(featureLines, sx, sy);
 		img.invertBinary();
-		map = distanceMap(img.arrayToMap());
-		drawMesh(lineOps.extractLines(map));
+		map = distanceMap(img.toMap());
+		//drawMesh(lineOps.extractLines(map, width, height));
 		System.out.println("Done.");
 	}
 	
@@ -128,22 +127,22 @@ public class MeshGenerator{
     	final long startAt = System.nanoTime();
        	
        	// Set top and bottom edges to 0
-      	for (x = 0; x < sx; x++)
+      	for (x = 0; x < width; x++)
        	{
       		map[x][0] = 0;
-      		map[x][sy-1] = 0;
+      		map[x][height-1] = 0;
        	}
       	
       	// Set left and right edges to 0
-  		for (y = 0; y < sy; y++)
+  		for (y = 0; y < height; y++)
        	{
       		map[0][y] = 0;
-      		map[sx-1][y] = 0;
+      		map[width-1][y] = 0;
        	}
       	
     	// Forward pass
-   	   	for (y = 1; y < sy-1; y++)
-   	   		for (x = 1; x < sx-1; x++)
+   	   	for (y = 1; y < height-1; y++)
+   	   		for (x = 1; x < width-1; x++)
        	   	{
    	   			if (map[x][y] == 0)
    	   				continue;
@@ -160,8 +159,8 @@ public class MeshGenerator{
        	   	}
     	
     	// Backward pass
-   	   	for (y = sy-2; y > 0; y--)
-   	   		for (x = sx-2; x > 0; x--)
+   	   	for (y = height-2; y > 0; y--)
+   	   		for (x = width-2; x > 0; x--)
        	   	{
    	   			//  . . .
    	   			//  . + e
@@ -179,14 +178,14 @@ public class MeshGenerator{
     	System.out.println("Distance map took " + ms + " ms.");
 
     	
-    	BufferedImage imgM = new BufferedImage(sx, sy, BufferedImage.TYPE_INT_RGB);		
+    	BufferedImage imgM = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);		
 		//----------------------------------------------------------------------------------------
 		// display distance map in color space
 		float min = 1000000000;
 		float max = 0;
 		
-   	   	for (y = 0; y < sy; y++)
-   	   		for (x = 0; x < sx; x++)
+   	   	for (y = 0; y < height; y++)
+   	   		for (x = 0; x < width; x++)
        	   	{
    	   			if (map[x][y] > max)
    	   				max = map[x][y];
@@ -196,8 +195,8 @@ public class MeshGenerator{
 		
    	   	float range = max+1-min;
    	   	
-   	   	for (y = 0; y < sy; y++)
-   	   		for (x = 0; x < sx; x++){
+   	   	for (y = 0; y < height; y++)
+   	   		for (x = 0; x < width; x++){
    	   			float col = (map[x][y]/range);
 				int newColor = (Math.round(col*255) << 16) | (Math.round(col*255) << 8) | Math.round(col*255);
 				imgM.setRGB(x, y, newColor);
@@ -208,12 +207,12 @@ public class MeshGenerator{
    	   	
    	   
    	   	// display distance map as rings
-   	   	BufferedImage imgM2 = new BufferedImage(sx, sy, BufferedImage.TYPE_INT_RGB);
+   	   	BufferedImage imgM2 = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		//final int ridgeColour = (255 << 24) | (0 << 16) | (200 << 8) | (0);   	   				   			
 		final int ridgeColour = (0 << 16) | (0 << 8) | (0);
 		
-   	   	for (y = 0; y < sy; y++)
-   	   		for (x = 0; x < sx; x++)
+   	   	for (y = 0; y < height; y++)
+   	   		for (x = 0; x < width; x++)
        	   	{ 
    	   			final int col = (255 << 16) | (255 << 8) | 255;
    	   			imgM2.setRGB(x, y, col);
