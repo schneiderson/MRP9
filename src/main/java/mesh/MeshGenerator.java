@@ -66,19 +66,30 @@ public class MeshGenerator{
 		img.calculateGradient(); // (also transforms into binary image)
 
         Skeletonization.binaryImage(img);
+        img.displayImage();
 
         // operations on binary image
         Lines lineOps = new Lines(width, height);
 
-		ArrayList<ArrayList<Coordinate>> lines = lineOps.extractLines(img.toMap());
-		drawMesh(lines);
-		/*ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
+        ArrayList<ArrayList<Coordinate>> lines = lineOps.extractLines(img.toMap());
+        drawMesh(lines);
+
+		ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
 		img.update(lineOps.linesToPixels(contour, width, height));
-//		//figureMap = lineOps.contourMap(featureLines, sx, sy);
-		img.invertBinary();
+		//img.displayImage();
+		//figureMap = lineOps.contourMap(contour, width, height);
+        img.invertBinary();
+        img.displayImage();
 		map = distanceMap(img.toMap());
-		//drawMesh(lineOps.extractLines(map, width, height));
-		*/
+
+		img.update(map);
+
+		//img.invertBinary();
+        //Skeletonization.binaryImage(img);
+        img.displayImage();
+
+		//drawMesh(lineOps.extractLines(map));
+
 		System.out.println("Done.");
 	}
 	
@@ -143,37 +154,37 @@ public class MeshGenerator{
        	}
       	
     	// Forward pass
-   	   	for (y = 1; y < height-1; y++)
-   	   		for (x = 1; x < width-1; x++)
-       	   	{
-   	   			if (map[x][y] == 0)
-   	   				continue;
-   	   			
-   	   			//  a b c
-   	   			//  d + .
-   	   			//  . . .
-   	   			final float a = map[x-1][y-1] + diag;
-   	   			final float b = map[x  ][y-1] + orth;
-   	   			final float c = map[x+1][y-1] + diag;
-   	   			final float d = map[x-1][y  ] + orth;
-   	   			
-       	   		map[x][y] = Math.min(Math.min(Math.min(a, b), c), d);
-       	   	}
+   	   	for (y = 1; y < height-1; y++) {
+            for (x = 1; x < width - 1; x++) {
+                if (map[x][y] == 0)
+                    continue;
+
+                //  a b c
+                //  d + .
+                //  . . .
+                final float a = map[x - 1][y - 1] + diag;
+                final float b = map[x][y - 1] + orth;
+                final float c = map[x + 1][y - 1] + diag;
+                final float d = map[x - 1][y] + orth;
+
+                map[x][y] = Math.min(Math.min(Math.min(a, b), c), d);
+            }
+        }
     	
     	// Backward pass
-   	   	for (y = height-2; y > 0; y--)
-   	   		for (x = width-2; x > 0; x--)
-       	   	{
-   	   			//  . . .
-   	   			//  . + e
-   	   			//  f g h
-   	   			final float e = map[x+1][y  ] + orth;
-   	   			final float f = map[x-1][y+1] + diag;
-   	   			final float g = map[x  ][y+1] + orth;
-   	   			final float h = map[x+1][y+1] + diag;
- 
-        	   	map[x][y] = Math.min(map[x][y], Math.min(Math.min(Math.min(e, f), g), h));
-       	   	}
+   	   	for (y = height-2; y > 0; y--) {
+            for (x = width - 2; x > 0; x--) {
+                //  . . .
+                //  . + e
+                //  f g h
+                final float e = map[x + 1][y] + orth;
+                final float f = map[x - 1][y + 1] + diag;
+                final float g = map[x][y + 1] + orth;
+                final float h = map[x + 1][y + 1] + diag;
+
+                map[x][y] = Math.min(map[x][y], Math.min(Math.min(Math.min(e, f), g), h));
+            }
+        }
 
     	final long endAt = System.nanoTime();
     	final double ms = (endAt - startAt) / 1000000.0;
@@ -186,23 +197,24 @@ public class MeshGenerator{
 		float min = 1000000000;
 		float max = 0;
 		
-   	   	for (y = 0; y < height; y++)
-   	   		for (x = 0; x < width; x++)
-       	   	{
-   	   			if (map[x][y] > max)
-   	   				max = map[x][y];
-   	   			if (map[x][y] < min)
-   	   				min = map[x][y];
-       	   	}
+   	   	for (y = 0; y < height; y++) {
+            for (x = 0; x < width; x++) {
+                if (map[x][y] > max)
+                    max = map[x][y];
+                if (map[x][y] < min)
+                    min = map[x][y];
+            }
+        }
 		
    	   	float range = max+1-min;
    	   	
-   	   	for (y = 0; y < height; y++)
-   	   		for (x = 0; x < width; x++){
-   	   			float col = (map[x][y]/range);
-				int newColor = (Math.round(col*255) << 16) | (Math.round(col*255) << 8) | Math.round(col*255);
-				imgM.setRGB(x, y, newColor);
-   	   		}
+   	   	for (y = 0; y < height; y++) {
+            for (x = 0; x < width; x++) {
+                float col = (map[x][y] / range);
+                int newColor = (Math.round(col * 255) << 16) | (Math.round(col * 255) << 8) | Math.round(col * 255);
+                imgM.setRGB(x, y, newColor);
+            }
+        }
    	   	
    	   	displayImage(imgM);
    	   	//----------------------------------------------------------------------------------------
@@ -213,20 +225,20 @@ public class MeshGenerator{
 		//final int ridgeColour = (255 << 24) | (0 << 16) | (200 << 8) | (0);   	   				   			
 		final int ridgeColour = (0 << 16) | (0 << 8) | (0);
 		
-   	   	for (y = 0; y < height; y++)
-   	   		for (x = 0; x < width; x++)
-       	   	{ 
-   	   			final int col = (255 << 16) | (255 << 8) | 255;
-   	   			imgM2.setRGB(x, y, col);
-   	   			
+   	   	for (y = 0; y < height; y++) {
+            for (x = 0; x < width; x++) {
+                final int col = (255 << 16) | (255 << 8) | 255;
+                imgM2.setRGB(x, y, col);
+
 //   	   			if (map[x][y] % 16 >= 0 && map[x][y] % 16 <= ringDist && figureMap[x][y] == 1){
-   	   			if (map[x][y] % 16 >= 0 && map[x][y] % 16 <= ringDist){
-   	   				imgM2.setRGB(x, y, ridgeColour);
-   	   				map[x][y] = 1;
-   	   			} 
-   	   			else
-   	   				map[x][y] = 0;
-      	   	}
+                if (map[x][y] % 16 >= 0 && map[x][y] % 16 <= ringDist) {
+                    imgM2.setRGB(x, y, ridgeColour);
+                    map[x][y] = 1;
+                } else
+                    map[x][y] = 0;
+            }
+        }
+
    	   	displayImage(imgM2);
    	   	//----------------------------------------------------------------------------------------
 		

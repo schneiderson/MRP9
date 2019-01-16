@@ -462,8 +462,7 @@ public class MyImage {
     /**
 	 * Blur the source image.
 	 */
-	public void blurImage(int blurFactor)
-	{
+	public void blurImage(int blurFactor) {
 		int tempWidth = width;
 		int tempHeight = height;
 		
@@ -522,17 +521,16 @@ public class MyImage {
 	/** 
 	 * Turn image into grayscale image.
 	 */
-	public void toGrayscale()
-	{
-		for (int y = 0; y < height; y++)
-			for (int x = 0; x < width; x++)
-			{
-				final int rgba = getPixel(x, y);
-				int intensity = (int) Math.round(intensity(rgba));
-				setRed(x, y, intensity);
-				setGreen(x, y, intensity);
-				setBlue(x, y, intensity);
-			}
+	public void toGrayscale() {
+		for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                final int rgba = getPixel(x, y);
+                int intensity = (int) Math.round(intensity(rgba));
+                setRed(x, y, intensity);
+                setGreen(x, y, intensity);
+                setBlue(x, y, intensity);
+            }
+        }
 		writeImage("res/GRAYSCALE.png");
 	}
 
@@ -610,10 +608,10 @@ public class MyImage {
 	
 	public void invertBinary(){
 		float[][] temp = toMap();
-		resetImageTo(1);
+		resetImageTo(255);
 		for (int y = 0; y < height; y++){
 			for (int x = 0; x < width; x++){
-				if (temp[x][y] == 1){
+				if (temp[x][y] == 255){
 					setRed(x, y, 0);
 					setGreen(x, y, 0);
 					setBlue(x, y, 0);
@@ -653,9 +651,11 @@ public class MyImage {
 	}
 	
 	public void setOpaque(){
-		for (int y = 0; y < height; y++)
-			for (int x = 0; x < width; x++)
-				setAlpha(x, y, 255);
+		for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                setAlpha(x, y, 255);
+            }
+        }
 	}
 	
 	public void displayImage(){
