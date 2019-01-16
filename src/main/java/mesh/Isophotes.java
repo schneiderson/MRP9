@@ -26,7 +26,6 @@ public class Isophotes {
 	int blurFactor = 5;
 	ArrayList<Coordinate> borderCoords = new ArrayList<Coordinate>();
 	ArrayList<Coordinate> innerCoords = new ArrayList<Coordinate>();
-	double[][] gradient;
 	
 	public Isophotes(String imgPath, int noBins, int blurFactor){
 		this.imgPath = imgPath;
@@ -34,22 +33,27 @@ public class Isophotes {
 		this.blurFactor = blurFactor;
 	}
 
-	public void init() {
+	public ArrayList<ArrayList<Coordinate>> init() {
 		Stippler stippler = new Stippler();
 		stippler.setBlurFactor(blurFactor);
 		stippler.loadImage(imgPath);
 		float[][] intensities = stippler.getIntensity();
-		int[][] quantized = quantize(intensities);
-		SVGUtil svgutil = isophoteLines(quantized);
+		float[][] quantized = quantize(intensities);
+		ArrayList<ArrayList<Coordinate>> isophotes = isophoteLines(quantized);
+		// very bad cheating solution --> only temporary
+		ArrayList<Coordinate> imgSize = new ArrayList<Coordinate>();
+		imgSize.add(new Coordinate(intensities[0].length, intensities.length));
+		isophotes.add(imgSize);
 		System.out.println("Done.");
+		return isophotes;
 	}
 	
-	public int[][] quantize(float[][] img) {
+	public float[][] quantize(float[][] img) {
 		
 		int ht = img.length;
 		int wd = img[0].length;
 		
-		int[][] quantized = new int[ht][wd];
+		float[][] quantized = new float[ht][wd];
 		BufferedImage image = new BufferedImage(ht, wd, BufferedImage.TYPE_INT_ARGB);
 		
 		for (int i = 0; i < ht; i++){
@@ -65,16 +69,16 @@ public class Isophotes {
 		return quantized;
 	}
 
-	public SVGUtil isophoteLines(int[][] quantizedImg){
+	
+	
+	public ArrayList<ArrayList<Coordinate>> isophoteLines(float[][] quantizedImg){
 		
 		int ht = quantizedImg.length;
 		int wd = quantizedImg[0].length;
-		
-		ArrayList<Edge> edges = new ArrayList<Edge>();
 
 		GradientCalculator gradCalc = new GradientCalculator();
 		gradCalc.calculateGradientFromImage(quantizedImg, ht, wd);
-		double[][] gradient = gradCalc.gradient;
+		float[][] gradient = gradCalc.gradient;
 		
 		BufferedImage image = new BufferedImage(ht, wd, BufferedImage.TYPE_INT_ARGB);
 		
@@ -95,7 +99,6 @@ public class Isophotes {
 		}
 
 		displayImage(image);
-		
 		
 		ArrayList<ArrayList<Coordinate>> isophotes = new ArrayList<ArrayList<Coordinate>>();
 		
@@ -128,29 +131,13 @@ public class Isophotes {
 			}
 			isophotes.add(ring);
 		}
-		
-		
-		for (ArrayList<Coordinate> r : isophotes){
-			System.out.println("Number final coordinates: " + r.size());
-			for (int i = 1; i < r.size(); i++){
-				edges.add(new Edge(r.get(i-1), r.get(i)));
-			}
-			edges.add(new Edge(r.get(0), r.get(r.size()-1)));
-		}
-		
-		SVGUtil svgwrite = new SVGUtil(edges, null);
-        svgwrite.createSVG(System.getProperty("user.dir") + "/res/isophoteLines.svg");
         
-        return svgwrite;
+        return isophotes;
 	}
-	
-	public boolean isNeighbour(Coordinate cur, Coordinate other){
-		return (cur.distance(other) <= 0);
-	}
-	
+
 	public Coordinate next(Coordinate first, Coordinate cur, int count){
 		Coordinate test, next = null;
-		int dist = 3;
+		int dist = 1;
 		
 		int ix = -dist;
 		int jy = -dist;
@@ -165,46 +152,39 @@ public class Isophotes {
 		else if (cur.y < dist)
 			jy = 0;
 		
+		ArrayList<Coordinate> neighbours = new ArrayList<Coordinate>();
+		//neighbours = null;
+		
+		
+		// determine all possible next coordinates within neighbourhood
 		for (int i = ix; i <= dist; i++){
 			for (int j = jy; j <= dist; j++){
-				if (Math.abs(i) == Math.abs(j)){
-					test = new Coordinate(cur.x+i, cur.y+j);
-					innerCoords.remove(cur);
-					// euqals first within first three
-					if (test.equals(first) && count > 10){
-						System.out.println("Ring completed");
-						return null;
-					}
-					if (innerCoords.contains(test)){
-						next = test;
-						innerCoords.remove(test);
-						//System.out.println("list size: " + innerCoords.size());
-						//System.out.println("Next x = " + next.x + ", next y = " + next.y);
-					}	
+				test = new Coordinate(cur.x+i, cur.y+j);
+				innerCoords.remove(cur);
+				if (innerCoords.contains(test)){
+					next = test;
+					neighbours.add(next);
+					innerCoords.remove(test);
 				}
 			}
 		}
 		
-		for (int i = ix; i <= dist; i++){
-			for (int j = jy; j <= dist; j++){
-				if (Math.abs(i) != Math.abs(j)){
-					test = new Coordinate(cur.x+i, cur.y+j);
-					innerCoords.remove(cur);
-					// euqals first within first three
+		// select next coordinate which has a valid neighbourhood on its own
+		for (Coordinate n : neighbours){
+			for (int i = ix; i <= dist; i++){
+				for (int j = jy; j <= dist; j++){
+					test = new Coordinate(n.x+i, n.y+j);
+					// equals first within first three
 					if (test.equals(first) && count > 10){
 						System.out.println("Ring completed");
-						return null;
 					}
 					if (innerCoords.contains(test)){
-						next = test;
-						innerCoords.remove(test);
-						//System.out.println("list size: " + innerCoords.size());
-						//System.out.println("Next x = " + next.x + ", next y = " + next.y);
+						return n;
 					}	
 				}
 			}
 		}
-		
+
 		if (next == null)
 			System.out.println("WARNING: LINE ENDS IN NOWHERE!");
 		
