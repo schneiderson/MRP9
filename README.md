@@ -4,6 +4,10 @@
 1. clone the github repository
 2. Import the project as a gradle project into your IDE (IntelliJ or Eclipse)
 
+**(Optional)** Additional steps for Canny-Edge Detector (OpenCV)
+1) go to the [OpenCV website](https://opencv-java-tutorials.readthedocs.io/en/latest/01-installing-opencv-for-java.html) and follow the install instructions for your operating system.
+2) follow the [setup instructions](https://opencv-java-tutorials.readthedocs.io/en/latest/01-installing-opencv-for-java.html#set-up-opencv-for-java-in-eclipse) for your IDE
+
 Gradle should take care of the rest. Generally the code should be executable with JDK8 or higher.
 
 ### Troubleshooting
