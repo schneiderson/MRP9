@@ -553,18 +553,18 @@ public class MyImage {
 	}
 	
 	public void quantize(int noBins) {
-		for (int y = 0; y < height; y++){
-			for (int x = 0; x < width; x++){
+        for (int y = 0; y < height; y++){
+            for (int x = 0; x < width; x++){
 //				int quantized = Math.round(Math.round(getRed(x, y)*noBins) *(255/noBins));
-				int quantized = (int) Math.round(Math.ceil((getRed(x, y)/(255/noBins)))*(255/noBins));
+                int quantized = (int) Math.round(Math.ceil((getRed(x, y)/(255/noBins)))*(255/noBins));
 //				int quantized = 33;
-				setRed(x, y, quantized);
-				setGreen(x, y, quantized);
-				setBlue(x, y, quantized);
-			}
-		}
-		writeImage("res/QUANTIZED.png");
-		displayImage();
+                setRed(x, y, quantized);
+                setGreen(x, y, quantized);
+                setBlue(x, y, quantized);
+            }
+        }
+        writeImage("res/QUANTIZED.png");
+        displayImage();
 	}
 	
 	public void calculateGradient(){
@@ -580,9 +580,9 @@ public class MyImage {
 					setGreen(x, y, 0);
 				}
 				else {
-					setRed(x, y, 1);
-					setBlue(x, y, 1);
-					setGreen(x, y, 1);
+					setRed(x, y, 255);
+					setBlue(x, y, 255);
+					setGreen(x, y, 255);
 				}
 
 			}
