@@ -72,7 +72,7 @@ public class MeshGenerator{
 		ArrayList<ArrayList<Coordinate>> lines = lineOps.extractLines(img.toMap());
 		drawMesh(lines);
 		ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
-//		img.update(lineOps.linesToPixels(contour, width, height));
+		img.update(lineOps.linesToPixels(contour, width, height));
 //		//figureMap = lineOps.contourMap(featureLines, sx, sy);
 		img.invertBinary();
 		map = distanceMap(img.toMap());
