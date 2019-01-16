@@ -17,8 +17,6 @@ import mesh.thinning.*;
 
 import org.locationtech.jts.geom.Coordinate;
 
-import com.sun.prism.paint.Color;
-
 import stippling.main.Stippler;
 import svg.SVGUtil;
 
@@ -67,16 +65,20 @@ public class MeshGenerator{
 		img.quantize(noBins);
 		img.calculateGradient(); // (also transforms into binary image)
 
-		// operations on binary image
-		Lines lineOps = new Lines(width, height);
+        Skeletonization.binaryImage(img);
+
+        // operations on binary image
+        Lines lineOps = new Lines(width, height);
+
 		ArrayList<ArrayList<Coordinate>> lines = lineOps.extractLines(img.toMap());
 		drawMesh(lines);
-		ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
+		/*ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
 		img.update(lineOps.linesToPixels(contour, width, height));
 //		//figureMap = lineOps.contourMap(featureLines, sx, sy);
 		img.invertBinary();
 		map = distanceMap(img.toMap());
 		//drawMesh(lineOps.extractLines(map, width, height));
+		*/
 		System.out.println("Done.");
 	}
 	
@@ -230,13 +232,13 @@ public class MeshGenerator{
 		
 		return map;
     }
-    
+
 	public void displayImage(BufferedImage img){
 		JFrame frame = new JFrame();
-		JLabel lblimage = new JLabel(new ImageIcon(img));		
+		JLabel lblimage = new JLabel(new ImageIcon(img));
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		mainPanel.add(lblimage);
-		
+
 		frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 		frame.add(mainPanel);
 		frame.setVisible(true);

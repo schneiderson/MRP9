@@ -33,8 +33,8 @@ public class Lines {
 		
    	   	for (int y = 5; y < height-5; y++){
    	   		for (int x = 5; x < width-5; x++){
-				if (map[x][y] == 1)
-					featureCoords.add(new Coordinate(x,y));
+				if (map[x][y] == 255)
+					featureCoords.add(new Coordinate(x, y));
 			}
 		}
    	   	
@@ -78,28 +78,35 @@ public class Lines {
 	public Coordinate next(Coordinate first, Coordinate cur, int count){
 		Coordinate test = null;
 		
-		ArrayList<Coordinate> neighbours = new ArrayList<Coordinate>();		
-		
+		ArrayList<Coordinate> neighbours = new ArrayList<Coordinate>();
+
 		// determine all possible next coordinates within neighbourhood
-		for (int i = -1; i <= 1; i++)
-			for (int j = -1; j <= 1; j++)
-				test = new Coordinate(cur.x+i, cur.y+j);
-				if (featureCoords.contains(test)){
-					neighbours.add(test);
-					featureCoords.remove(test);
-				}
+		for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++){
+                test = new Coordinate(cur.x + i, cur.y + j);
+                if (featureCoords.contains(test)) {
+                    neighbours.add(test);
+                    featureCoords.remove(test);
+                }
+            }
+        }
 		
 		// select next coordinate which has a valid neighbourhood on its own
-		for (Coordinate n : neighbours)
-			for (int i = -1; i <= 1; i++)
-				for (int j = -1; j <= 1; j++){
-					test = new Coordinate(n.x+i, n.y+j);
-					// equals first within first three
-					if (test.equals(first) && count > 10)
-						System.out.println("Ring completed");
-					if (featureCoords.contains(test))
-						return n;
-				}
+		for (Coordinate n : neighbours) {
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    test = new Coordinate(n.x + i, n.y + j);
+                    // equals first within first three
+                    if (test.equals(first) && count > 5) {
+                        System.out.println("Ring completed");
+                    }
+                    if (featureCoords.contains(test)) {
+                        return n;
+                    }
+
+                }
+            }
+        }
 
 		System.out.println("WARNING: LINE ENDS IN NOWHERE!");		
 		return null;
