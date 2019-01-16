@@ -26,7 +26,7 @@ public class GradientCalculator {
 	public double[][] gradientY; // Variable to communicate the gradient in X direction with calling class 
 	int r, g, b; // temporary variables to store the r, g and b values of the pixels.
 	// @M:
-	public double[][] gradient;
+	public float[][] gradient;
 
 	/**
 	 * Function that calculates the gradient from the image given in argument using the central difference method.
@@ -38,11 +38,11 @@ public class GradientCalculator {
 	 * @param iw
 	 *            Width of the image
 	 */
-	public void calculateGradientFromImage(int pixelmap[][], int ih, int iw) {
+	public void calculateGradientFromImage(float pixelmap[][], int ih, int iw) {
 		gradientX = new double[ih][iw];
 		gradientY = new double[ih][iw];
 		// @M:
-		gradient = new double[ih][iw];
+		gradient = new float[ih][iw];
 
 		int[] row = new int[ih];
 		int[] column = new int[iw];
@@ -80,8 +80,8 @@ public class GradientCalculator {
 //				gradientX[0][j] = -(t1 + t2 + t3) / (3.0 * 255.0);
 				
 				// @M:
-				int i2 = pixelmap[1][j];
-				int i1 = pixelmap[0][j];
+				float i2 = pixelmap[1][j];
+				float i1 = pixelmap[0][j];
 				t = (double) (i2 - i1) / (row[1] - row[0]);
 				gradientX[0][j] = -t;
 
@@ -101,8 +101,8 @@ public class GradientCalculator {
 //				gradientX[ih - 1][j] = -(t1 + t2 + t3) / (3.0 * 255.0);
 				
 				// @M:
-				int in = pixelmap[ih-1][j];
-				int in1 = pixelmap[ih-2][j];
+				float in = pixelmap[ih-1][j];
+				float in1 = pixelmap[ih-2][j];
 				t = (double) (in - in1) / (row[ih - 1] - row[ih - 2]);
 				gradientX[ih - 1][j] = -t;
 			}
@@ -130,8 +130,8 @@ public class GradientCalculator {
 //					gradientX[i][j] = -(t1 + t2 + t3) / (3.0 * 255.0);
 				
 				// @M:
-					int i2 = pixelmap[i+1][j];
-					int i1 = pixelmap[i-1][j];
+					float i2 = pixelmap[i+1][j];
+					float i1 = pixelmap[i-1][j];
 					t = (double) (i2 - i1) / (row[i + 1] - row[i - 1]);
 					gradientX[i][j] = -t;
 				}
@@ -159,8 +159,8 @@ public class GradientCalculator {
 //				gradientY[j][0] = (t1 + t2 + t3) / (3.0 * 255.0);
 				
 				// @M:
-				int i2 = pixelmap[j][1];
-				int i1 = pixelmap[j][0];
+				float i2 = pixelmap[j][1];
+				float i1 = pixelmap[j][0];
 				t = (double) (i2 - i1) / (column[1] - column[0]);
 				gradientY[j][0] = t;
 
@@ -180,8 +180,8 @@ public class GradientCalculator {
 //				gradientY[j][iw - 1] = (t1 + t2 + t3) / (3.0 * 255.0);
 				
 				// @M:
-				int in = pixelmap[j][iw-1];
-				int in1 = pixelmap[j][iw-2];
+				float in = pixelmap[j][iw-1];
+				float in1 = pixelmap[j][iw-2];
 				t = (double) (in - in1) / (column[iw - 1] - column[iw - 2]);
 				gradientY[j][iw - 1] = t;
 				
@@ -212,8 +212,8 @@ public class GradientCalculator {
 //					gradientY[i][j] = (t1 + t2 + t3) / (3.0 * 255.0);
 					
 					// @M:
-					int i2 = pixelmap[i][j+1];
-					int i1 = pixelmap[i][j-1];
+					float i2 = pixelmap[i][j+1];
+					float i1 = pixelmap[i][j-1];
 					t = (double) (i2 - i1) / (column[j + 1] - column[j - 1]);
 					gradientY[i][j] = t;
 				}
@@ -223,7 +223,7 @@ public class GradientCalculator {
 		// @M:
 		for (int i = 0; i < ih; i++){
 			for (int j = 0; j < iw; j++){
-				gradient[i][j] = Math.abs(gradientX[i][j]) + Math.abs(gradientY[i][j]);
+				gradient[i][j] = (float) Math.abs(gradientX[i][j]) + (float) Math.abs(gradientY[i][j]);
 			}
 		}
 	}
