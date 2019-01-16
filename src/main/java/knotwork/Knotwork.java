@@ -42,7 +42,7 @@ public class Knotwork {
         // create svg from knotwork graph
         SVGUtil svgUtilKnotwork = new SVGUtil(svgutil.edges, svgutil.nodes, graph.curveLists, graph.overpassCurveList);
         // save svg
-        svgUtilKnotwork.createSVG(System.getProperty("user.dir") + "/res/curve_2.svg", true);
+        svgUtilKnotwork.createSVG(System.getProperty("user.dir") + "/res/curve_2.svg", true, true);
         System.out.println("\n> SVG Created");
 
         // Print control and curve sets/lists

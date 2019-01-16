@@ -98,10 +98,10 @@ public class SVGUtil {
 
 
     public void createSVG(String path) {
-        createSVG(path, true);
+        createSVG(path, true, true);
     }
 
-    public void createSVG(String path, boolean includeMesh) {
+    public void createSVG(String path, boolean includeMesh, boolean includeAnchorControlLine) {
         try {
             // set up color iterator for the different curve lists:
             String[] colorArray = new String[]{"red", "green", "blue", "yellow", "purple", "cyan", "orange"};
@@ -217,6 +217,7 @@ public class SVGUtil {
                 }
             }
 
+
             // apply over-under pattern:
             for (OverpassCurve overpassCurve : overpassCurveList) {
                 String color = colorArray[overpassCurve.getId() % colorArray.length];
@@ -267,6 +268,48 @@ public class SVGUtil {
                 svgRoot.appendChild(curvePathNarrow);
             }
 
+            if (includeAnchorControlLine){
+                for (ArrayList<Curve> curveList : curveLists) {
+                    for (Curve curve : curveList) {
+                        CubicBezier cbCurve = curve.getCubicBezierPoints();
+
+                        Element line1 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                        line1.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:lime;stroke-width:0.5");
+                        line1.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().x));
+                        line1.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().y));
+                        line1.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl1().x));
+                        line1.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl1().y));
+
+                        Element line2 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                        line2.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:lime;stroke-width:0.5");
+                        line2.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().x));
+                        line2.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().y));
+                        line2.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl2().x));
+                        line2.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl2().y));
+
+                        svgRoot.appendChild(line1);
+                        svgRoot.appendChild(line2);
+
+                        // add anchor to opposite control line
+                        Element line3 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                        line3.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:blue;stroke-width:0.5");
+                        line3.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().x));
+                        line3.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().y));
+                        line3.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl2().x));
+                        line3.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl2().y));
+
+                        Element line4 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                        line4.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:blue;stroke-width:0.5");
+                        line4.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().x));
+                        line4.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().y));
+                        line4.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl1().x));
+                        line4.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl1().y));
+
+                        svgRoot.appendChild(line3);
+                        svgRoot.appendChild(line4);
+                    }
+                }
+            }
 
             // set the width and height attribute on the root svg element:
             svgRoot.setAttributeNS(null, "width", Double.toString(Math.ceil(x_max * 2)));
