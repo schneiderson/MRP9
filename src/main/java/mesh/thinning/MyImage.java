@@ -571,22 +571,41 @@ public class MyImage {
 		GradientCalculator gradCalc = new GradientCalculator();
 		gradCalc.calculateGradientFromImage(toMap(), width, height);
 		float[][] gradient = gradCalc.gradient;
-		resetImageTo(0);
+		//resetImageTo(0);
 		for (int y = 0; y < height; y++){
 			for (int x = 0; x < width; x++){
-				setPixelToValue(x, y, (int) gradient[x][y]);
+				if (gradient[x][y] == 0){
+					setRed(x, y, 0);
+					setBlue(x, y, 0);
+					setGreen(x, y, 0);
+				}
+				else {
+					setRed(x, y, 1);
+					setBlue(x, y, 1);
+					setGreen(x, y, 1);
+				}
+
 			}
 		}
-		makeBinary();
 	}
+
 	
-	private void makeBinary(){
+	public void binaryToBW(){
 		for (int y = 0; y < height; y++){
 			for (int x = 0; x < width; x++){
-				if (getPixel(x, y) != 0)
-				setPixelToValue(x, y, 1);
+				if (getRed(x, y) == 0){
+					setRed(x, y, 255);
+					setGreen(x, y, 255);
+					setBlue(x, y, 255);
+				}
+				else{
+					setRed(x, y, 0);
+					setGreen(x, y, 0);
+					setBlue(x, y, 0);
+				}
 			}
 		}
+		displayImage();
 	}
 	
 	public void invertBinary(){
@@ -594,8 +613,11 @@ public class MyImage {
 		resetImageTo(1);
 		for (int y = 0; y < height; y++){
 			for (int x = 0; x < width; x++){
-				if (temp[x][y] == 1)
-				setPixelToValue(x, y, 0);
+				if (temp[x][y] == 1){
+					setRed(x, y, 0);
+					setGreen(x, y, 0);
+					setBlue(x, y, 0);
+				}
 			}
 		}
 	}
@@ -605,7 +627,7 @@ public class MyImage {
 		
 		for (int y = 0; y < height; y++){
 			for (int x = 0; x < width; x++){
-				map[x][y] = pixels[x+(y*width)];
+				map[x][y] = getRed(x, y);
 			}
 		}
 		return map;
@@ -614,15 +636,20 @@ public class MyImage {
 	public void update(float[][] map){
 		for (int y = 0; y < height; y++){
 			for (int x = 0; x < width; x++){
-				setPixelToValue(x, y, (int) map[x][y]);
+				setRed(x, y, (int) map[x][y]);
+				setGreen(x, y, (int) map[x][y]);
+				setBlue(x, y, (int) map[x][y]);
 			}
 		}
 	}
 	
 	private void resetImageTo(int value){
 		for (int y = 0; y < height; y++)
-			for (int x = 0; x < width; x++)
-				setPixelToValue(x, y, value);
+			for (int x = 0; x < width; x++){
+				setRed(x, y, value);
+				setGreen(x, y, value);
+				setBlue(x, y, value);
+			}
 	}
 	
 	public void setOpaque(){
