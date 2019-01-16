@@ -13,7 +13,7 @@ public class Mesh {
 	
 		//MeshGenerator meshG = new MeshGenerator(1, isos.init(), 1);
 		// MeshGenerator(String imgPath, int cellWidth, int noBins, int blurFactor)
-		MeshGenerator meshG = new MeshGenerator("res/circle.png",1,1,1);
+		MeshGenerator meshG = new MeshGenerator("res/flower_contrast.png",1,2,50);
 		meshG.init();
 	}
 }
