@@ -569,7 +569,7 @@ public class MyImage {
 	
 	public void calculateGradient(){
 		GradientCalculator gradCalc = new GradientCalculator();
-		gradCalc.calculateGradientFromImage(arrayToMap(), width, height);
+		gradCalc.calculateGradientFromImage(toMap(), width, height);
 		float[][] gradient = gradCalc.gradient;
 		resetImageTo(0);
 		for (int y = 0; y < height; y++){
@@ -590,7 +590,7 @@ public class MyImage {
 	}
 	
 	public void invertBinary(){
-		float[][] temp = arrayToMap();
+		float[][] temp = toMap();
 		resetImageTo(1);
 		for (int y = 0; y < height; y++){
 			for (int x = 0; x < width; x++){
@@ -600,7 +600,7 @@ public class MyImage {
 		}
 	}
     
-	public float[][] arrayToMap(){
+	public float[][] toMap(){
 		float[][] map = new float[width][height];
 		
 		for (int y = 0; y < height; y++){
@@ -609,6 +609,14 @@ public class MyImage {
 			}
 		}
 		return map;
+	}
+	
+	public void update(float[][] map){
+		for (int y = 0; y < height; y++){
+			for (int x = 0; x < width; x++){
+				setPixelToValue(x, y, (int) map[x][y]);
+			}
+		}
 	}
 	
 	private void resetImageTo(int value){

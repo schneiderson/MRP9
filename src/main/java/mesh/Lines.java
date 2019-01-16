@@ -12,23 +12,27 @@ import javax.swing.JPanel;
 
 import org.locationtech.jts.geom.Coordinate;
 
-public class LineOperations {
+public class Lines {
 
 	ArrayList<Coordinate> contour = new ArrayList<Coordinate>();
 	ArrayList<Coordinate> featureCoords = new ArrayList<Coordinate>();
+	
+	int width, height;
+	
+	Lines(int width, int height){
+		this.width = width;
+		this.height = height;
+	}
 	
 	/**
      * Extract lines from pixel map.
      */
 	public ArrayList<ArrayList<Coordinate>> extractLines(float[][] map){
 		
-    	int sx = map.length;
-    	int sy = map[0].length;
-		
 		featureCoords = new ArrayList<Coordinate>();
 		
-   	   	for (int y = 5; y < sy-5; y++){
-   	   		for (int x = 5; x < sx-5; x++){
+   	   	for (int y = 5; y < height-5; y++){
+   	   		for (int x = 5; x < width-5; x++){
 				if (map[x][y] == 1)
 					featureCoords.add(new Coordinate(x,y));
 			}
@@ -140,6 +144,7 @@ public class LineOperations {
      * ... to be completed
      */
 	public float[][] skeletonize(float[][] map){
+		
 		int sx = map.length;
     	int sy = map[0].length;
     	
