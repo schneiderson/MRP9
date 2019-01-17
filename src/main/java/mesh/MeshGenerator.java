@@ -1,8 +1,6 @@
 package mesh;
 
-import java.awt.BorderLayout;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,8 +74,8 @@ public class MeshGenerator{
 
 		ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
 		img.update(lineOps.linesToPixels(contour, width, height));
-		//img.displayImage();
-		//figureMap = lineOps.contourMap(contour, width, height);
+
+		figureMap = lineOps.contourMap(contour, width, height);
         img.invertBinary();
         img.displayImage();
 		map = distanceMap(img.toMap());
@@ -85,7 +83,12 @@ public class MeshGenerator{
 		img.update(map);
 
 		//img.invertBinary();
-        //Skeletonization.binaryImage(img);
+        Skeletonization.binaryImage(img);
+        img.displayImage();
+        img.writeImage("res/skeletonized.png");
+        //img.invertBinary();
+
+        img.removeBackground(contour.get(0));
         img.displayImage();
 
 		//drawMesh(lineOps.extractLines(map));
@@ -231,9 +234,9 @@ public class MeshGenerator{
                 imgM2.setRGB(x, y, col);
 
 //   	   			if (map[x][y] % 16 >= 0 && map[x][y] % 16 <= ringDist && figureMap[x][y] == 1){
-                if (map[x][y] % 16 >= 0 && map[x][y] % 16 <= ringDist) {
+                if (map[x][y] % cellWidth >= 0 && map[x][y] % cellWidth <= ringDist) {
                     imgM2.setRGB(x, y, ridgeColour);
-                    map[x][y] = 1;
+                    map[x][y] = 255;
                 } else
                     map[x][y] = 0;
             }

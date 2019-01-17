@@ -178,12 +178,12 @@ public class Lines {
         final int white = (255 << 16) | (255 << 8) | 255;
         final int red = (255 << 16) | (0 << 8) | 0;
 
-        ArrayList<Coordinate> contour = featureLines.get(0);
-        for (int i = 1; i < featureLines.size() - 1; i++) {
-            if (featureLines.get(i).size() > contour.size()) {
-                contour = featureLines.get(i);
-            }
-        }
+        ArrayList<Coordinate> contour = (ArrayList<Coordinate>) featureLines.get(0).clone();
+//        for (int i = 1; i < featureLines.size() - 1; i++) {
+//            if (featureLines.get(i).size() > contour.size()) {
+//                contour = (ArrayList<Coordinate>) featureLines.get(i).clone();
+//            }
+//        }
 
         float[][] figureMap = new float[sx][sy];
 
