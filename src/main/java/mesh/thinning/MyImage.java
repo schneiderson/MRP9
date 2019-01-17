@@ -31,15 +31,13 @@ package mesh.thinning;
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -48,6 +46,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import mesh.GradientCalculator;
+import org.locationtech.jts.geom.Coordinate;
 import stippling.main.Filters;
 
 public class MyImage {
@@ -649,7 +648,19 @@ public class MyImage {
 				setBlue(x, y, value);
 			}
 	}
-	
+
+	public void setPixelToBlack(int x, int y){
+        setRed(x, y, 0);
+        setGreen(x, y, 0);
+        setBlue(x, y, 0);
+    }
+
+    public void setPixelToWhite(int x, int y){
+        setRed(x, y, 255);
+        setGreen(x, y, 255);
+        setBlue(x, y, 255);
+    }
+
 	public void setOpaque(){
 		for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -657,7 +668,51 @@ public class MyImage {
             }
         }
 	}
-	
+
+
+    public void removeBackground(ArrayList<Coordinate> contour){
+
+        int[] xCoords = new int[contour.size()];
+        int[] yCoords = new int[contour.size()];
+
+        for (int i = 0; i < contour.size(); i++) {
+            xCoords[i] = (int) contour.get(i).getX();
+            yCoords[i] = (int) contour.get(i).getY();
+        }
+
+        Polygon myPol = new Polygon(xCoords, yCoords, contour.size());
+
+
+        Polygon p = new Polygon();
+        for (int i = 0; i < 5; i++) p.addPoint((int) (
+                100 + 50 * Math.cos(i * 2 * Math.PI / 5)),(int) (
+                100 + 50 * Math.sin(i * 2 * Math.PI / 5)));
+
+
+        displayPolygon(myPol);
+
+        for(int y = 0; y < this.height; y++){
+            for(int x = 0; x < this.width; x++){
+                if( !myPol.contains(x, y) && !contour.contains(new Coordinate(x, y))) {
+                    setPixelToBlack(x, y);
+                } else {
+                    System.out.println("In contour");
+                }
+            }
+        }
+
+    }
+
+    public void displayPolygon(Polygon polygon){
+        JFrame frame = new JFrame();
+        frame.setSize(800, 600);
+        JPanel polygonPanel = new PolygonPanel(polygon);
+        frame.getContentPane().add(polygonPanel);
+
+        frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
+        frame.setVisible(true);
+    }
+
 	public void displayImage(){
 		JFrame frame = new JFrame();
 		JLabel lblimage = new JLabel(new ImageIcon(image));
@@ -668,5 +723,5 @@ public class MyImage {
 		frame.add(mainPanel);
 		frame.setVisible(true);
 	}
-	
+
 }//class ImageFX ends here
