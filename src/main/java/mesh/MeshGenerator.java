@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -72,10 +73,10 @@ public class MeshGenerator{
         ArrayList<ArrayList<Coordinate>> lines = lineOps.extractLines(img.toMap());
         drawMesh(lines);
 
-		ArrayList<ArrayList<Coordinate>> contour = lineOps.extractContour(lines);
-		img.update(lineOps.linesToPixels(contour, width, height));
+		int contour_index = lineOps.extractContour(lines);
+		img.update(lineOps.lineToPixels(lines.get(contour_index), width, height));
 
-		figureMap = lineOps.contourMap(contour, width, height);
+		//figureMap = lineOps.contourMap(contour, width, height);
         img.invertBinary();
         img.displayImage();
 		map = distanceMap(img.toMap());
@@ -84,21 +85,113 @@ public class MeshGenerator{
 
 		//img.invertBinary();
         Skeletonization.binaryImage(img);
+
         img.displayImage();
         img.writeImage("res/skeletonized.png");
         //img.invertBinary();
 
-        img.removeBackground(contour.get(0));
-        img.displayImage();
+        img.removeBackground(lines.get(contour_index));
+        img.writeImage("res/skeletonized_nb.png");
 
-        img.getCornerPoints();
-        img.displayImage();
+        ArrayList<ArrayList<Coordinate>> lines1 = lineOps.extractLines(img.toMap());
+        img.update(lineOps.linesToPixels(lines1, width, height));
+        img.writeImage("res/skeletonized1.png");
+        drawMesh(lines1);
 
-		//drawMesh(lineOps.extractLines(map));
+        ArrayList<Coordinate> cornerPoints = img.getCornerPoints(6, 5, 0.001, 40);
+        //img.displayImage();
+
+        createMesh(lines1, cornerPoints, cellWidth, contour_index);
 
 		System.out.println("Done.");
 	}
-	
+
+
+	public void createMesh(ArrayList<ArrayList<Coordinate>> lines, ArrayList<Coordinate> cornerPoints, int cellWidth, int contour_index){
+        ArrayList<ArrayList<Coordinate>> variableVertices = new ArrayList<>();
+        ArrayList<ArrayList<Coordinate>> fixedVertices = new ArrayList<>();
+
+        for (ArrayList<Coordinate> line : lines) {
+            variableVertices.add(new ArrayList<Coordinate>());
+            fixedVertices.add(new ArrayList<Coordinate>());
+        }
+
+	    // first map corner points to contour
+        for (Coordinate cornerPoint : cornerPoints) {
+            Coordinate closestPoint = new Coordinate(-100 ,-100);
+            int i_closest_line = -1;
+
+            for (int i = 0; i < lines.size(); i++) {
+                for (Coordinate coordinate : lines.get(i)) {
+                    if(coordinate.distance(cornerPoint) < closestPoint.distance(cornerPoint)){
+                        closestPoint = coordinate;
+                        i_closest_line = i;
+                    }
+                }
+            }
+
+            ArrayList<Coordinate> fv = fixedVertices.get(i_closest_line);
+            fv.add(closestPoint);
+
+        }
+
+        // then start distributing points on outermost contour
+        ArrayList<Coordinate> outerContour = lines.get(contour_index);
+        int contour_length = outerContour.size();
+
+        int num_outer_vertecies = (int) Math.floor(contour_length / cellWidth);
+        int number_fixed_points = fixedVertices.get(contour_index).size();
+
+        int number_variable_points = num_outer_vertecies - number_fixed_points;
+
+        if(fixedVertices.get(contour_index).size() > 0){
+
+            for (int i = 0; i < fixedVertices.get(contour_index).size(); i++) {
+                int j = i + 1;
+                if(i == fixedVertices.get(contour_index).size()){
+                    j = 0;
+                }
+
+                Coordinate point1 = fixedVertices.get(contour_index).get(i);
+                Coordinate point2 = point1;
+                if(fixedVertices.get(contour_index).size() > 1){
+                    point2 = fixedVertices.get(contour_index).get(j);
+                }
+
+                int index_p1 = outerContour.indexOf(point1);
+                int index_p2 = outerContour.indexOf(point2);
+
+                int distance = index_p1 - index_p2;
+                if(distance == 0){
+                    distance = fixedVertices.get(contour_index).size();
+                }
+                if(distance < 0){
+                    distance = fixedVertices.get(contour_index).size() - index_p1 + index_p2;
+                }
+
+                // we can fit at most distance/cellWidth variable points between the two fixed points
+                int points_in_between = (int) Math.floor(distance / cellWidth);
+
+                for (int n = 0; n < points_in_between; n++) {
+                    int index_new = index_p1 + (n + 1) * cellWidth;
+                    if(index_new > fixedVertices.get(contour_index).size()){
+                        index_new = index_new - fixedVertices.get(contour_index).size();
+                    }
+                    variableVertices.get(contour_index).add(outerContour.get(index_new));
+                }
+            }
+        } else {
+            // if there are no fixed points, simply distribute the variable points evenly
+            for (int i = 0; i < number_variable_points; i++) {
+                variableVertices.get(contour_index).add(outerContour.get(i*cellWidth));
+            }
+        }
+
+        System.out.println("bla");
+
+
+
+    }
 	
 	
 	/**
@@ -250,6 +343,12 @@ public class MeshGenerator{
 		
 		return map;
     }
+
+    public void findPoints(ArrayList<ArrayList<Coordinate>> contours){
+
+    }
+
+
 
 	public void displayImage(BufferedImage img){
 		JFrame frame = new JFrame();

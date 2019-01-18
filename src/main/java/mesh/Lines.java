@@ -29,7 +29,8 @@ public class Lines {
      */
     public ArrayList<ArrayList<Coordinate>> extractLines(float[][] map) {
 
-        featureCoords = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> visited = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> featureCoords = new ArrayList<Coordinate>();
 
         for (int y = 5; y < height - 5; y++) {
             for (int x = 5; x < width - 5; x++) {
@@ -39,58 +40,99 @@ public class Lines {
             }
         }
 
+        filterSingleCornerPixels(featureCoords);
+
         ArrayList<ArrayList<Coordinate>> featureLines = new ArrayList<ArrayList<Coordinate>>();
 
         boolean loop = true;
         while (loop) {
-            if (featureCoords.size() < 1) {
+            if (featureCoords.size() <= visited.size()) {
                 loop = false;
                 break;
             }
 
-            Coordinate c = featureCoords.get(0);
-
-            int i = (int) c.x;
-            int j = (int) c.y;
-
-            Coordinate frst = null;
-            Coordinate cur = new Coordinate(i, j);
-            int cnt = 0;
             ArrayList<Coordinate> ring = new ArrayList<Coordinate>();
+            Coordinate cur = getUnvisited(featureCoords, visited);
+            Coordinate first = cur;
+            ring.add(first);
+
             while (cur != null) {
-                ring.add(cur);
-                featureCoords.remove(cur);
-                Coordinate temp = cur;
-                cur = next(frst, temp, cnt);
-                cnt++;
-                if (frst == null)
-                    frst = new Coordinate(temp.x, temp.y);
+                visited.add(cur);
+
+                cur = next(first, cur, ring.size(), featureCoords, visited);
+                if(cur != null){
+                    ring.add(cur);
+                }
             }
-            featureLines.add(ring);
+            if( ring.size() > 4){
+                System.out.println("WARNING: Detected line is too short. Ignoring...");
+                featureLines.add(ring);
+            }
         }
 
         return featureLines;
+    }
+
+    public Coordinate getUnvisited(ArrayList<Coordinate> featureCoords, ArrayList<Coordinate> visited){
+        for (Coordinate featureCoord : featureCoords) {
+            if(!visited.contains(featureCoord)){
+                return featureCoord;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Filter out single corner pixels
+     */
+    private void filterSingleCornerPixels(ArrayList<Coordinate> featureCoords){
+        ArrayList<Coordinate> singlePixels = new ArrayList<Coordinate>();
+
+        for (Coordinate featureCoord : featureCoords) {
+            ArrayList<Coordinate> neighbours = getNeighbours(featureCoords, featureCoord);
+            if(neighbours.size() < 2){
+                singlePixels.add(featureCoord);
+            } else if(neighbours.size() == 2){
+                if(neighbours.get(0).distance(neighbours.get(1)) < 2){
+                    singlePixels.add(featureCoord);
+                }
+            }
+        }
+
+        featureCoords.removeAll(singlePixels);
+    }
+
+
+    public ArrayList<Coordinate> getNeighbours(ArrayList<Coordinate> featureCoords, Coordinate cur){
+        Coordinate test = null;
+        ArrayList<Coordinate> neighbours = new ArrayList<Coordinate>();
+
+        // determine all possible next coordinates within neighbourhood
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if(i == 0 && j == 0){
+                    continue;
+                }
+                test = new Coordinate(cur.x + i, cur.y + j);
+                if (featureCoords.contains(test)) {
+                    neighbours.add(test);
+                }
+            }
+        }
+
+        return neighbours;
     }
 
 
     /**
      * Find next in line.
      */
-    public Coordinate next(Coordinate first, Coordinate cur, int count) {
+    public Coordinate next(Coordinate first, Coordinate cur, int count,
+                           ArrayList<Coordinate> featureCoords, ArrayList<Coordinate> visited) {
         Coordinate test = null;
+        ArrayList<Coordinate> neighbours = getNeighbours(featureCoords, cur);
 
-        ArrayList<Coordinate> neighbours = new ArrayList<Coordinate>();
-
-        // determine all possible next coordinates within neighbourhood
-        for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <= 1; j++) {
-                test = new Coordinate(cur.x + i, cur.y + j);
-                if (featureCoords.contains(test)) {
-                    neighbours.add(test);
-                    featureCoords.remove(test);
-                }
-            }
-        }
+        neighbours.removeAll(visited);
 
         // select next coordinate which has a valid neighbourhood on its own
         for (Coordinate n : neighbours) {
@@ -98,18 +140,17 @@ public class Lines {
                 for (int j = -1; j <= 1; j++) {
                     test = new Coordinate(n.x + i, n.y + j);
                     // equals first within first three
-                    if (test.equals(first) && count > 5) {
+                    if (test.equals(first)) {
                         System.out.println("Ring completed");
+                        return n;
                     }
                     if (featureCoords.contains(test)) {
                         return n;
                     }
-
                 }
             }
         }
 
-        System.out.println("WARNING: LINE ENDS IN NOWHERE!");
         return null;
     }
 
@@ -117,18 +158,17 @@ public class Lines {
     /**
      * Extracts contour line (longest line) in list.
      */
-    public ArrayList<ArrayList<Coordinate>> extractContour(ArrayList<ArrayList<Coordinate>> lines) {
+    public int extractContour(ArrayList<ArrayList<Coordinate>> lines) {
+        int index = 0;
 
-        ArrayList<ArrayList<Coordinate>> list = new ArrayList<ArrayList<Coordinate>>();
         ArrayList<Coordinate> contour = lines.get(0);
         for (int i = 1; i < lines.size() - 1; i++) {
-            if (lines.get(i).size() > contour.size()) {
-                contour = lines.get(i);
+            if (lines.get(i).size() > lines.get(index).size()) {
+                index = i;
             }
         }
-        list.add(contour);
 
-        return list;
+        return index;
     }
 
 
@@ -147,6 +187,19 @@ public class Lines {
             for (Coordinate coord : line) {
                 map[(int) coord.x][(int) coord.y] = 255;
             }
+        }
+
+        return map;
+    }
+
+    public float[][] lineToPixels(ArrayList<Coordinate> line, int sx, int sy){
+        float[][] map = new float[sx][sy];
+
+        for (int x = 0; x < sx; x++) {
+            Arrays.fill(map[x], 0);
+        }
+        for (Coordinate coord : line) {
+            map[(int) coord.x][(int) coord.y] = 255;
         }
 
         return map;
