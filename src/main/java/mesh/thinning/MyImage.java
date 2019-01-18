@@ -31,7 +31,11 @@ package mesh.thinning;
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import java.awt.*;
+import java.awt.Polygon;
+import java.awt.Graphics2D;
+import java.awt.BorderLayout;
+import java.awt.image.DataBufferByte;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,10 +51,16 @@ import javax.swing.JPanel;
 
 import mesh.GradientCalculator;
 import org.locationtech.jts.geom.Coordinate;
+import org.opencv.core.*;
+import org.opencv.highgui.HighGui;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import stippling.main.Filters;
 
 public class MyImage {
-    
+
+    static{ System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+
     //////////////////////////// VARIABLES /////////////////////////////////////
     
     /** Store the Image reference */
@@ -688,19 +698,56 @@ public class MyImage {
                 100 + 50 * Math.cos(i * 2 * Math.PI / 5)),(int) (
                 100 + 50 * Math.sin(i * 2 * Math.PI / 5)));
 
-
-        displayPolygon(myPol);
-
         for(int y = 0; y < this.height; y++){
             for(int x = 0; x < this.width; x++){
                 if( !myPol.contains(x, y) && !contour.contains(new Coordinate(x, y))) {
                     setPixelToBlack(x, y);
-                } else {
-                    System.out.println("In contour");
+                }
+            }
+        }
+    }
+
+    public void getCornerPoints(){
+	    Mat srcGray = new Mat();
+	    Mat dstNorm = new Mat();
+	    Mat dstNormScaled = new Mat();
+        Mat src = new Mat();
+	    try {
+            src = BufferedImage2Mat(image);
+        }catch (Exception e){
+	        //
+        }
+
+        Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
+
+        Mat dst = Mat.zeros(srcGray.size(), CvType.CV_32F);
+        int blockSize = 10;
+        int apertureSize = 3;
+        double k = 0.12;
+        int threshold = 85;
+
+        Imgproc.cornerHarris(srcGray, dst, blockSize, apertureSize, k);
+
+        Core.normalize(dst, dstNorm, 0, 255, Core.NORM_MINMAX);
+        Core.convertScaleAbs(dstNorm, dstNormScaled);
+        float[] dstNormData = new float[(int) (dstNorm.total() * dstNorm.channels())];
+        dstNorm.get(0, 0, dstNormData);
+        for (int i = 0; i < dstNorm.rows(); i++) {
+            for (int j = 0; j < dstNorm.cols(); j++) {
+                if ((int) dstNormData[i * dstNorm.cols() + j] > threshold) {
+                    Imgproc.circle(dstNormScaled, new Point(j, i), 10, new Scalar(0), 5, 8, 0);
                 }
             }
         }
 
+        image = (BufferedImage) HighGui.toBufferedImage(dstNormScaled);
+    }
+
+    public static Mat BufferedImage2Mat(BufferedImage image) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", byteArrayOutputStream);
+        byteArrayOutputStream.flush();
+        return Imgcodecs.imdecode(new MatOfByte(byteArrayOutputStream.toByteArray()), Imgcodecs.IMREAD_UNCHANGED);
     }
 
     public void displayPolygon(Polygon polygon){
