@@ -9,6 +9,7 @@ import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.util.SVGConstants;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineSegment;
 import org.w3c.dom.*;
 import util.MathUtil;
 
@@ -30,6 +31,7 @@ public class SVGUtil {
     public ArrayList<ArrayList<Curve>> curveLists = new ArrayList<>();
     public ArrayList<OverpassCurve> overpassCurveList = new ArrayList<>();
     private Double distanceTolerance = 0.5;
+    public ArrayList<LineSegment> undulationList = new ArrayList<>();
 
 
     public SVGUtil(ArrayList<Edge> edges, ArrayList<Coordinate> nodes) {
@@ -62,6 +64,21 @@ public class SVGUtil {
         }
         if (overpassCurveList != null) {
             this.overpassCurveList = overpassCurveList;
+        }
+    }
+
+    public SVGUtil(ArrayList<Edge> edges, ArrayList<Coordinate> nodes,
+                   ArrayList<ArrayList<Curve>> curveLists, ArrayList<OverpassCurve> overpassCurveList,
+                   ArrayList<LineSegment> undulationList) {
+        this(edges, nodes);
+        if (curveLists != null) {
+            this.curveLists = curveLists;
+        }
+        if (overpassCurveList != null) {
+            this.overpassCurveList = overpassCurveList;
+        }
+        if (undulationList != null){
+            this.undulationList = undulationList;
         }
     }
 
@@ -109,8 +126,8 @@ public class SVGUtil {
             String[] edgeColorArray = new String[]{"rgb(0,0,0)", "rgb(0,0,255)", "rgb(255,255,0)"};
             Iterator<String> colors = MathUtil.cycle(colorArray);
             String outlineColor = "black";
-            String strokeWidthWide = "8";
-            String strokeWidthNarrow = "4";
+            String strokeWidthWide = "10";
+            String strokeWidthNarrow = "6";
 
             // find largest x and y coordinates
             double x_max = 0, y_max = 0;
@@ -225,35 +242,30 @@ public class SVGUtil {
                 CubicBezier cbCurve1 = overpassCurve.getCurve1().getCubicBezierPoints();
                 CubicBezier cbCurve2 = overpassCurve.getCurve2().getCubicBezierPoints();
 
-                if (!cbCurve1.getAnchor1().equals2D(cbCurve2.getAnchor2())){
-                    cbCurve2 = new CubicBezier(cbCurve2.knotNode1, cbCurve2.knotNode2,
-                            cbCurve2.getAnchor2(), cbCurve2.getControl2(), cbCurve2.getControl1(), cbCurve2.getAnchor1(),
-                            false);
-                }
+                Coordinate[] coordinates = findSharedAnchor(cbCurve1, cbCurve2);
 
                 Element curvePathWide = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
                 Element curvePathNarrow = doc.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
 
-                // wide thread:
                 curvePathWide.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
-                        "M"+ cbCurve1.getAnchor2().x + "," + cbCurve1.getAnchor2().y + " " +
-                                "C" + cbCurve1.getControl2().x + "," + cbCurve1.getControl2().y + " " +
-                                cbCurve1.getControl1().x + "," + cbCurve1.getControl1().y + " " +
-                                cbCurve1.getAnchor1().x + "," + cbCurve1.getAnchor1().y + " " +
+                        "M"+ coordinates[0].x + "," + coordinates[0].y + " " +
+                                "C" + coordinates[1].x + "," + coordinates[1].y + " " +
+                                coordinates[2].x + "," + coordinates[2].y + " " +
+                                coordinates[3].x + "," + coordinates[3].y + " " +
                                 "C" +
-                                cbCurve2.getControl2().x + "," + cbCurve2.getControl2().y + " " +
-                                cbCurve2.getControl1().x + "," + cbCurve2.getControl1().y + " " +
-                                cbCurve2.getAnchor1().x + "," + cbCurve2.getAnchor1().y
+                                coordinates[4].x + "," + coordinates[4].y + " " +
+                                coordinates[5].x + "," + coordinates[5].y + " " +
+                                coordinates[6].x + "," + coordinates[6].y
                 );
                 curvePathNarrow.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE,
-                        "M"+ cbCurve1.getAnchor2().x + "," + cbCurve1.getAnchor2().y + " " +
-                                "C" + cbCurve1.getControl2().x + "," + cbCurve1.getControl2().y + " " +
-                                cbCurve1.getControl1().x + "," + cbCurve1.getControl1().y + " " +
-                                cbCurve1.getAnchor1().x + "," + cbCurve1.getAnchor1().y + " " +
+                        "M"+ coordinates[0].x + "," + coordinates[0].y + " " +
+                                "C" + coordinates[1].x + "," + coordinates[1].y + " " +
+                                coordinates[2].x + "," + coordinates[2].y + " " +
+                                coordinates[3].x + "," + coordinates[3].y + " " +
                                 "C" +
-                                cbCurve2.getControl2().x + "," + cbCurve2.getControl2().y + " " +
-                                cbCurve2.getControl1().x + "," + cbCurve2.getControl1().y + " " +
-                                cbCurve2.getAnchor1().x + "," + cbCurve2.getAnchor1().y
+                                coordinates[4].x + "," + coordinates[4].y + " " +
+                                coordinates[5].x + "," + coordinates[5].y + " " +
+                                coordinates[6].x + "," + coordinates[6].y
                 );
 
                 curvePathWide.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, outlineColor);
@@ -268,48 +280,69 @@ public class SVGUtil {
                 svgRoot.appendChild(curvePathNarrow);
             }
 
+
             if (includeAnchorControlLine){
                 for (ArrayList<Curve> curveList : curveLists) {
                     for (Curve curve : curveList) {
                         CubicBezier cbCurve = curve.getCubicBezierPoints();
 
-                        Element line1 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
-                        line1.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:lime;stroke-width:0.5");
-                        line1.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().x));
-                        line1.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().y));
-                        line1.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl1().x));
-                        line1.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl1().y));
+                        boolean undulation = cbCurve.checkForUndulation();
 
-                        Element line2 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
-                        line2.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:lime;stroke-width:0.5");
-                        line2.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().x));
-                        line2.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().y));
-                        line2.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl2().x));
-                        line2.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl2().y));
+                        if (true) {
 
-                        svgRoot.appendChild(line1);
-                        svgRoot.appendChild(line2);
+                            Element line1 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                            line1.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:lime;stroke-width:0.5");
+                            line1.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().x));
+                            line1.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().y));
+                            line1.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl1().x));
+                            line1.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl1().y));
 
-                        // add anchor to opposite control line
-                        Element line3 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
-                        line3.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:blue;stroke-width:0.5");
-                        line3.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().x));
-                        line3.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().y));
-                        line3.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl2().x));
-                        line3.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl2().y));
+                            Element line2 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                            line2.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:lime;stroke-width:0.5");
+                            line2.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().x));
+                            line2.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().y));
+                            line2.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl2().x));
+                            line2.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl2().y));
 
-                        Element line4 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
-                        line4.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:blue;stroke-width:0.5");
-                        line4.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().x));
-                        line4.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().y));
-                        line4.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl1().x));
-                        line4.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl1().y));
+                            svgRoot.appendChild(line1);
+                            svgRoot.appendChild(line2);
 
-                        svgRoot.appendChild(line3);
-                        svgRoot.appendChild(line4);
+                            // add anchor to opposite control line
+                            Element line3 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                            line3.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:blue;stroke-width:0.5");
+                            line3.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().x));
+                            line3.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor1().y));
+                            line3.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl2().x));
+                            line3.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl2().y));
+
+                            Element line4 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                            line4.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:blue;stroke-width:0.5");
+                            line4.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().x));
+                            line4.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(cbCurve.getAnchor2().y));
+                            line4.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(cbCurve.getControl1().x));
+                            line4.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(cbCurve.getControl1().y));
+
+//                            svgRoot.appendChild(line3);
+//                            svgRoot.appendChild(line4);
+                        }
                     }
                 }
+
+                for (int i = 0; i < undulationList.size(); i++) {
+                    LineSegment lineSegment = undulationList.get(i);
+                    String color = "pink";
+
+                    Element line1 = doc.createElementNS(svgNS, SVGConstants.SVG_LINE_TAG);
+                    line1.setAttributeNS(null, SVGConstants.SVG_STYLE_TAG, "stroke:"+color+";stroke-width:0.5");
+                    line1.setAttributeNS(null, SVGConstants.SVG_X1_ATTRIBUTE, Double.toString(lineSegment.p0.x));
+                    line1.setAttributeNS(null, SVGConstants.SVG_Y1_ATTRIBUTE, Double.toString(lineSegment.p0.y));
+                    line1.setAttributeNS(null, SVGConstants.SVG_X2_ATTRIBUTE, Double.toString(lineSegment.p1.x));
+                    line1.setAttributeNS(null, SVGConstants.SVG_Y2_ATTRIBUTE, Double.toString(lineSegment.p1.y));
+
+                    svgRoot.appendChild(line1);
+                }
             }
+
 
             // set the width and height attribute on the root svg element:
             svgRoot.setAttributeNS(null, "width", Double.toString(Math.ceil(x_max * 2)));
@@ -330,6 +363,54 @@ public class SVGUtil {
             System.out.println("Couldn't save SVG file");
             System.out.println(e);
         }
+    }
+
+    private Coordinate[] findSharedAnchor(CubicBezier cbCurve1, CubicBezier cbCurve2) {
+        Coordinate[] result = new Coordinate[7];
+        if (cbCurve1.getAnchor1().equals(cbCurve2.getAnchor1())){
+            result[0] = cbCurve1.getAnchor2();
+            result[1] = cbCurve1.getControl2();
+            result[2] = cbCurve1.getControl1();
+            result[3] = cbCurve1.getAnchor1();
+
+            result[4] = cbCurve2.getControl1();
+            result[5] = cbCurve2.getControl2();
+            result[6] = cbCurve2.getAnchor2();
+        }
+        else if (cbCurve1.getAnchor1().equals(cbCurve2.getAnchor2())){
+            result[0] = cbCurve1.getAnchor2();
+            result[1] = cbCurve1.getControl2();
+            result[2] = cbCurve1.getControl1();
+            result[3] = cbCurve1.getAnchor1();
+
+            result[4] = cbCurve2.getControl2();
+            result[5] = cbCurve2.getControl1();
+            result[6] = cbCurve2.getAnchor1();
+        }
+        else if (cbCurve1.getAnchor2().equals(cbCurve2.getAnchor1())){
+            result[0] = cbCurve1.getAnchor1();
+            result[1] = cbCurve1.getControl1();
+            result[2] = cbCurve1.getControl2();
+            result[3] = cbCurve1.getAnchor2();
+
+            result[4] = cbCurve2.getControl1();
+            result[5] = cbCurve2.getControl2();
+            result[6] = cbCurve2.getAnchor2();
+        }
+        else if (cbCurve1.getAnchor2().equals(cbCurve2.getAnchor2())){
+            result[0] = cbCurve1.getAnchor1();
+            result[1] = cbCurve1.getControl1();
+            result[2] = cbCurve1.getControl2();
+            result[3] = cbCurve1.getAnchor2();
+
+            result[4] = cbCurve2.getControl2();
+            result[5] = cbCurve2.getControl1();
+            result[6] = cbCurve2.getAnchor1();
+        }
+        else {
+            throw new NullPointerException("No matching anchor! There should be!");
+        }
+        return result;
     }
 
     public void mergeCloseCoordinates(ArrayList<Edge> edges){

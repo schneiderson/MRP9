@@ -34,6 +34,7 @@ public class CubicBezier extends Curve {
         this.control2 = control2;
         this.control1 = control1;
         this.partCurve = partCurve;
+        this.lineSegmentAnchorPoints = new LineSegment(this.anchor1, this.anchor2);
     }
 
 
@@ -42,6 +43,7 @@ public class CubicBezier extends Curve {
         return this;
     }
 
+
     private void determineControlPoints() {
         this.control1 = this.knotNode1.getVector().multiply(.75 * this.knotNode1.getCrossing().edge.getLength()).translate(anchor1);
         this.control2 = this.knotNode2.getVector().multiply(.75 * this.knotNode2.getCrossing().edge.getLength()).translate(anchor2);
@@ -49,9 +51,29 @@ public class CubicBezier extends Curve {
         this.control1 = MathUtil.roundCoordinate(this.control1, 2d);
         this.control2 = MathUtil.roundCoordinate(this.control2, 2d);
 
-        this.control1 = hasIntersection(this.knotNode1, this.anchor1, this.control1, 0.3333333333);
-        this.control2 = hasIntersection(this.knotNode2, this.anchor2, this.control2, 0.6666666666);
+        double segmentLengthFraction = 1.0 / 3.0;
+        this.control1 = hasIntersection(this.knotNode1, this.anchor1, this.control1, segmentLengthFraction);
+        this.control2 = hasIntersection(this.knotNode2, this.anchor2, this.control2, 1-segmentLengthFraction);
     }
+
+
+    // check if curve has undulation (e.g. an S-like shape) and try to make it more straight
+    // [no need to check/worry about diverging or parallel vectors, they are already filtered out to be make pointy]
+    public boolean checkForUndulation() {
+        if (this.isPartCurve()) return false;
+
+        LineSegment a1ToC2 = new LineSegment(this.anchor1, this.control2);
+        LineSegment a2ToC1 = new LineSegment(this.anchor2, this.control1);
+        Coordinate intersection = a1ToC2.intersection(a2ToC1);
+
+        Vector2D vector1 = new Vector2D(this.anchor1, this.control1);
+        Vector2D vector2 = new Vector2D(this.anchor2, this.control2);
+        double absAngle = Math.abs(vector1.angleTo(vector2));
+
+        if (intersection == null) return true;
+        return absAngle < Math.PI && absAngle > (0.8 * Math.PI);
+    }
+
 
     /**
      * Checks whether tangent line segment and the line segment perpendicular to the anchorLineSegment
@@ -90,6 +112,7 @@ public class CubicBezier extends Curve {
             return controlPrime;
         return control;
     }
+
 
     // Creates an bezier curve as segment of original curve, from t0 into the curve to t1,
     // where 0 <= t0 <= t1 <= 1
@@ -152,5 +175,44 @@ public class CubicBezier extends Curve {
 
     public boolean isPartCurve() {
         return partCurve;
+    }
+
+    public LineSegment getLineSegmentAnchorPoints() {return lineSegmentAnchorPoints;}
+
+    public void setControl1(Coordinate coordinate){
+        this.control1 = coordinate;
+    }
+
+    public void setControl2(Coordinate coordinate){
+        this.control2 = coordinate;
+    }
+
+    public Coordinate updateControl(Coordinate destination, Coordinate source) {
+        if (source.equals(this.control1)) {
+            setControl1(destination);
+            return control1;
+        } else {
+            setControl2(destination);
+            return control2;
+        }
+    }
+
+    public Coordinate getOppositeAnchor(Coordinate coordinate) {
+        if (coordinate.equals(this.anchor1)){
+            return this.anchor2;
+        }
+        else if (coordinate.equals(this.anchor2)){
+            return this.anchor1;
+        }
+        return null;
+    }
+
+    public Coordinate getOppositeControl(Coordinate coordinate) {
+        if (coordinate.equals(this.control1)){
+            return this.control2;
+        } else if (coordinate.equals(this.control2)){
+            return this.control1;
+        }
+        return null;
     }
 }

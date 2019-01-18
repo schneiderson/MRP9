@@ -40,9 +40,10 @@ public class Knotwork {
         KnotworkGraph graph = new KnotworkGraph(svgutil.nodes, svgutil.edges);
 
         // create svg from knotwork graph
-        SVGUtil svgUtilKnotwork = new SVGUtil(svgutil.edges, svgutil.nodes, graph.curveLists, graph.overpassCurveList);
+        SVGUtil svgUtilKnotwork = new SVGUtil(svgutil.edges, svgutil.nodes, graph.curveLists, graph.overpassCurveList, graph.undulationList);
+
         // save svg
-        svgUtilKnotwork.createSVG(System.getProperty("user.dir") + "/res/curve_2.svg", true, true);
+        svgUtilKnotwork.createSVG(System.getProperty("user.dir") + "/res/curve_2.svg", false, false);
         System.out.println("\n> SVG Created");
 
         // Print control and curve sets/lists

@@ -175,4 +175,12 @@ public class KnotNode {
     public void setOverpass(boolean overpass) {
         crossing.getPairByNode(this).setOverpass(overpass);
     }
+
+    public KnotNode getKnotNodeFromPair(){
+        KnotNodePair knotNodePair = this.getCrossing().getPairByNode(this);
+        if (this.equals(knotNodePair.node1)){
+            return knotNodePair.node2;
+        }
+        return knotNodePair.node1;
+    }
 }
