@@ -34,7 +34,6 @@ package mesh.thinning;
 import java.awt.Polygon;
 import java.awt.Graphics2D;
 import java.awt.BorderLayout;
-import java.awt.image.DataBufferByte;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -707,7 +706,9 @@ public class MyImage {
         }
     }
 
-    public void getCornerPoints(){
+    public ArrayList<Coordinate> getCornerPoints(int blockSize, int apertureSize, double k, int threshold){
+	    ArrayList<Coordinate> cornerPoints = new ArrayList<Coordinate>();
+
 	    Mat srcGray = new Mat();
 	    Mat dstNorm = new Mat();
 	    Mat dstNormScaled = new Mat();
@@ -715,16 +716,12 @@ public class MyImage {
 	    try {
             src = BufferedImage2Mat(image);
         }catch (Exception e){
-	        //
+            System.out.println("Image conversion failed in harris corner detection");
         }
 
         Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
 
         Mat dst = Mat.zeros(srcGray.size(), CvType.CV_32F);
-        int blockSize = 10;
-        int apertureSize = 3;
-        double k = 0.12;
-        int threshold = 85;
 
         Imgproc.cornerHarris(srcGray, dst, blockSize, apertureSize, k);
 
@@ -732,15 +729,53 @@ public class MyImage {
         Core.convertScaleAbs(dstNorm, dstNormScaled);
         float[] dstNormData = new float[(int) (dstNorm.total() * dstNorm.channels())];
         dstNorm.get(0, 0, dstNormData);
+
         for (int i = 0; i < dstNorm.rows(); i++) {
             for (int j = 0; j < dstNorm.cols(); j++) {
                 if ((int) dstNormData[i * dstNorm.cols() + j] > threshold) {
-                    Imgproc.circle(dstNormScaled, new Point(j, i), 10, new Scalar(0), 5, 8, 0);
+                    cornerPoints.add(new Coordinate(j, i));
+
                 }
             }
         }
 
-        image = (BufferedImage) HighGui.toBufferedImage(dstNormScaled);
+        ArrayList<Coordinate> cornerPointsAvg = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> cornerPointsChecked = new ArrayList<Coordinate>();
+
+        for (Coordinate cornerPoint1 : cornerPoints) {
+            if(cornerPointsChecked.contains(cornerPoint1)){
+                continue;
+            }
+            cornerPointsChecked.add(cornerPoint1);
+
+            double minDist = Double.MAX_VALUE;
+            double x_sum = cornerPoint1.x;
+            double y_sum = cornerPoint1.y;
+            int counter = 1;
+
+            for (Coordinate cornerPoint2 : cornerPoints) {
+                if(cornerPoint1.equals(cornerPoint2)){
+                    continue;
+                }
+                if(cornerPoint1.distance(cornerPoint2) < blockSize * 2){
+                    x_sum += cornerPoint2.x;
+                    y_sum += cornerPoint2.y;
+                    counter++;
+                    cornerPointsChecked.add(cornerPoint2);
+                }
+            }
+
+            double x_avg = x_sum / counter;
+            double y_avg = y_sum / counter;
+
+            Coordinate cornerPoint = new Coordinate(Math.round(x_avg), Math.round(y_avg));
+            cornerPointsAvg.add(cornerPoint);
+            //Imgproc.circle(dstNormScaled, new Point(cornerPoint.x, cornerPoint.y), 10, new Scalar(50), 3, 8, 0);
+
+        }
+        //image = (BufferedImage) HighGui.toBufferedImage(dstNormScaled);
+
+        return cornerPointsAvg;
     }
 
     public static Mat BufferedImage2Mat(BufferedImage image) throws IOException {
