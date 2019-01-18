@@ -91,6 +91,9 @@ public class MeshGenerator{
         img.removeBackground(contour.get(0));
         img.displayImage();
 
+        img.getCornerPoints();
+        img.displayImage();
+
 		//drawMesh(lineOps.extractLines(map));
 
 		System.out.println("Done.");
