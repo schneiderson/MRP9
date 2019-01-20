@@ -97,7 +97,6 @@ public class MeshGenerator{
 
         ArrayList<ArrayList<Coordinate>> lines1 = lineOps.extractLines(img.toMap());
         img.update(lineOps.linesToPixels(lines1, width, height));
-        img.writeImage("res/skeletonized1.png");
         drawMesh(lines1);
 
         ArrayList<Coordinate> cornerPoints = img.getCornerPoints(6, 5, 0.001, 40);
@@ -110,6 +109,7 @@ public class MeshGenerator{
         // draw fixed points
         //img.drawCrosses(points.get(0), 3, 255, 255, 0, 0);
         img.displayImage();
+        img.writeImage("res/points2.png");
 
         System.out.println("Done.");
     }
@@ -208,6 +208,8 @@ public class MeshGenerator{
 //            int nextContourIndex = getNextContour(current_contour_index, lines, true);
             int nextContourIndex = current_contour_index + 1;
 
+
+            //moveUntilNoChange(corresponding, fixedVertices.get(nextContourIndex), lines.get(nextContourIndex));
             while(true){
                 if(moveUntilNoChange(corresponding, fixedVertices.get(nextContourIndex), lines.get(nextContourIndex))){
                     break;
@@ -240,8 +242,8 @@ public class MeshGenerator{
             return p1 + (int) Math.round((p2 - p1) / 2);
         } else {
             int offset = (int) Math.round(getDistanceOnContour(point1, point2, contour) / 2);
-            if( p1 + offset > contour.size()){
-                return offset - (contour.size() - p1);
+            if( p1 + offset > contour.size() - 1){
+                return offset - (contour.size() - 1 - p1);
             } else {
                 return p1 + offset;
             }
@@ -254,7 +256,7 @@ public class MeshGenerator{
 
         int dist;
         if(p1 > p2){
-            dist = contour.size() - p1 + p2;
+            dist = p2 + (contour.size() - 1 - p1);
         } else {
             dist = p2 - p1;
         }
@@ -265,6 +267,44 @@ public class MeshGenerator{
     public boolean moveUntilNoChange(ArrayList<Coordinate> variablePoints, ArrayList<Coordinate> fixedPoints, ArrayList<Coordinate> contour){
 	    boolean noChange = true;
 
+
+	    // check if there are too many fixed points and if they are too close
+        // if yes, "kick one out"
+        int numFixedPoints = fixedPoints.size();
+        boolean bothSidesToClose = true;
+
+        while(Math.abs(contour.size() / numFixedPoints) < cellWidth ){
+            boolean removed = false;
+            for (int i = 0; i < numFixedPoints; i++) {
+                int prev = i - 1;
+                int next = i + 1;
+
+                if(i == 0) prev = numFixedPoints - 1;
+                if(i == numFixedPoints - 1) next = 0;
+
+                int distPrev = getDistanceOnContour(fixedPoints.get(prev), fixedPoints.get(i), contour);
+                int distNext = getDistanceOnContour(fixedPoints.get(i), fixedPoints.get(next), contour);
+
+                if(bothSidesToClose){
+                    if(distPrev < cellWidth && distNext < cellWidth){
+                        numFixedPoints--;
+                        fixedPoints.remove(i);
+                        removed = true;
+                    }
+                } else {
+                    if(distPrev < cellWidth || distNext < cellWidth){
+                        numFixedPoints--;
+                        fixedPoints.remove(i);
+                        removed = true;
+                    }
+                }
+                if(!removed && i == numFixedPoints - 1){
+                    bothSidesToClose = false;
+                }
+            }
+        }
+
+	    // snap points to fixed points if very close
         for (int i = 0; i < variablePoints.size(); i++) {
             // merge with close fixed points
             for (Coordinate fixedPoint : fixedPoints) {
@@ -327,7 +367,7 @@ public class MeshGenerator{
                         movePointsWithCoordinate(variablePoints, (Coordinate) variablePoints.get(merge_with).clone(), contour.get(newIndex));
                     }
 
-                    //System.out.println("change 1 detected");
+                    System.out.println("change 1 detected");
                     noChange = false;
                 } else { // enough space to move
                     // move half way
@@ -335,7 +375,7 @@ public class MeshGenerator{
                     int newIndex = getIndexPointHalfwayBetween(variablePoints.get(prev), variablePoints.get(next), contour);
                     movePointsWithCoordinate(variablePoints, (Coordinate) variablePoints.get(i).clone(), contour.get(newIndex));
 
-                    //System.out.println("change 2 detected");
+                    System.out.println("change 2 detected");
                     noChange = false;
                 }
             }
@@ -398,9 +438,9 @@ public class MeshGenerator{
             }
 
             if(dist1 < dist2){
-                corresponding.add(closest1);
+                corresponding.add((Coordinate) closest1.clone());
             } else {
-                corresponding.add(closest2);
+                corresponding.add((Coordinate) closest2.clone());
             }
 
         }
