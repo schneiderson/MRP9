@@ -73,7 +73,28 @@ public class MyImage {
     
     /** Total number of pixel in an image*/
     private int totalPixels;
-    
+
+    public void setPixelsToColor(ArrayList<Coordinate> points, int a, int r, int g, int b) {
+        for (Coordinate point : points) {
+            setPixel((int) point.x, (int) point.y, a, r, g, b);
+        }
+    }
+
+    public void drawCrosses(ArrayList<Coordinate> points, int size, int a, int r, int g, int b) {
+        for (Coordinate point : points) {
+            for (int i = -size; i <= size; i++) {
+                if(i == 0){
+                    setPixel((int) point.x, (int) point.y, a, r, g, b);
+                } else {
+                    setPixel((int) point.x - i, (int) point.y - i, a, r, g, b);
+                    setPixel((int) point.x - i, (int) point.y + i, a, r, g, b);
+                    setPixel((int) point.x + i, (int) point.y + i, a, r, g, b);
+                    setPixel((int) point.x + i, (int) point.y - i, a, r, g, b);
+                }
+            }
+        }
+    }
+
     /** 
      * Image type example: jpg|png 
      * JPG does not support alpha (transparency is lost) while PNG supports alpha.
@@ -690,12 +711,6 @@ public class MyImage {
         }
 
         Polygon myPol = new Polygon(xCoords, yCoords, contour.size());
-
-
-        Polygon p = new Polygon();
-        for (int i = 0; i < 5; i++) p.addPoint((int) (
-                100 + 50 * Math.cos(i * 2 * Math.PI / 5)),(int) (
-                100 + 50 * Math.sin(i * 2 * Math.PI / 5)));
 
         for(int y = 0; y < this.height; y++){
             for(int x = 0; x < this.width; x++){
