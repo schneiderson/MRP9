@@ -2,6 +2,7 @@ package mesh;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +17,7 @@ import mesh.thinning.*;
 
 import org.locationtech.jts.geom.Coordinate;
 
+import org.locationtech.jts.math.Vector2D;
 import stippling.main.Stippler;
 import svg.SVGUtil;
 
@@ -101,13 +103,19 @@ public class MeshGenerator{
         ArrayList<Coordinate> cornerPoints = img.getCornerPoints(6, 5, 0.001, 40);
         //img.displayImage();
 
-        createMesh(lines1, cornerPoints, cellWidth, contour_index);
+        ArrayList<ArrayList<Coordinate>> points = createMesh(lines1, cornerPoints, cellWidth, contour_index);
 
-		System.out.println("Done.");
-	}
+        // draw variable points
+        img.drawCrosses(points.get(1), 3, 255, 0, 255, 0);
+        // draw fixed points
+        //img.drawCrosses(points.get(0), 3, 255, 255, 0, 0);
+        img.displayImage();
+
+        System.out.println("Done.");
+    }
 
 
-	public void createMesh(ArrayList<ArrayList<Coordinate>> lines, ArrayList<Coordinate> cornerPoints, int cellWidth, int contour_index){
+	public ArrayList<ArrayList<Coordinate>> createMesh(ArrayList<ArrayList<Coordinate>> lines, ArrayList<Coordinate> cornerPoints, int cellWidth, int contour_index){
         ArrayList<ArrayList<Coordinate>> variableVertices = new ArrayList<>();
         ArrayList<ArrayList<Coordinate>> fixedVertices = new ArrayList<>();
 
@@ -141,6 +149,7 @@ public class MeshGenerator{
 
         int num_outer_vertecies = (int) Math.floor(contour_length / cellWidth);
         int number_fixed_points = fixedVertices.get(contour_index).size();
+        int pointDist = (int) Math.round(contour_length / num_outer_vertecies);
 
         int number_variable_points = num_outer_vertecies - number_fixed_points;
 
@@ -158,8 +167,8 @@ public class MeshGenerator{
                     point2 = fixedVertices.get(contour_index).get(j);
                 }
 
-                int index_p1 = outerContour.indexOf(point1);
-                int index_p2 = outerContour.indexOf(point2);
+                int index_p1 = indexOfCoordinate(outerContour, point1);
+                int index_p2 = indexOfCoordinate(outerContour, point2);
 
                 int distance = index_p1 - index_p2;
                 if(distance == 0){
@@ -170,10 +179,10 @@ public class MeshGenerator{
                 }
 
                 // we can fit at most distance/cellWidth variable points between the two fixed points
-                int points_in_between = (int) Math.floor(distance / cellWidth);
+                int points_in_between = (int) Math.floor(distance / pointDist);
 
                 for (int n = 0; n < points_in_between; n++) {
-                    int index_new = index_p1 + (n + 1) * cellWidth;
+                    int index_new = index_p1 + (n + 1) * pointDist;
                     if(index_new > fixedVertices.get(contour_index).size()){
                         index_new = index_new - fixedVertices.get(contour_index).size();
                     }
@@ -183,26 +192,291 @@ public class MeshGenerator{
         } else {
             // if there are no fixed points, simply distribute the variable points evenly
             for (int i = 0; i < number_variable_points; i++) {
-                variableVertices.get(contour_index).add(outerContour.get(i*cellWidth));
+                variableVertices.get(contour_index).add(outerContour.get(i * pointDist));
             }
         }
 
-        System.out.println("bla");
+        // now propagate points to inner contours
+        for (int current_contour_index = 0; current_contour_index < lines.size() - 1; current_contour_index++) {
 
+            ArrayList<Coordinate> combinedPoints = new ArrayList<Coordinate>();
+            //combinedPoints.addAll(fixedVertices.get(current_contour_index));
+            combinedPoints.addAll(variableVertices.get(current_contour_index));
 
+            // find point on next contour closest to perpendicular line from current point
+            ArrayList<Coordinate> corresponding = getPointsOnNextContour(combinedPoints, current_contour_index, lines);
+//            int nextContourIndex = getNextContour(current_contour_index, lines, true);
+            int nextContourIndex = current_contour_index + 1;
+
+            while(true){
+                if(moveUntilNoChange(corresponding, fixedVertices.get(nextContourIndex), lines.get(nextContourIndex))){
+                    break;
+                }
+            }
+
+            variableVertices.get(nextContourIndex).addAll(corresponding);
+
+        }
+
+        // add everything together and return
+        ArrayList<ArrayList<Coordinate>> vertecies = new ArrayList<>();
+        vertecies.add(new ArrayList<Coordinate>());
+        vertecies.add(new ArrayList<Coordinate>());
+
+        for (int i = 0; i < lines.size(); i++) {
+            vertecies.get(0).addAll(fixedVertices.get(i));
+            vertecies.get(1).addAll(variableVertices.get(i));
+        }
+
+        return vertecies;
 
     }
-	
-	
+
+    public int getIndexPointHalfwayBetween(Coordinate point1, Coordinate point2, ArrayList<Coordinate> contour){
+        int p1 = indexOfCoordinate(contour, point1);
+        int p2 = indexOfCoordinate(contour, point2);
+
+        if(p1 < p2){
+            return p1 + (int) Math.round((p2 - p1) / 2);
+        } else {
+            int offset = (int) Math.round(getDistanceOnContour(point1, point2, contour) / 2);
+            if( p1 + offset > contour.size()){
+                return offset - (contour.size() - p1);
+            } else {
+                return p1 + offset;
+            }
+        }
+    }
+
+    public int getDistanceOnContour(Coordinate point1, Coordinate point2, ArrayList<Coordinate> contour){
+        int p1 = indexOfCoordinate(contour, point1);
+        int p2 = indexOfCoordinate(contour, point2);
+
+        int dist;
+        if(p1 > p2){
+            dist = contour.size() - p1 + p2;
+        } else {
+            dist = p2 - p1;
+        }
+
+        return dist;
+    }
+
+    public boolean moveUntilNoChange(ArrayList<Coordinate> variablePoints, ArrayList<Coordinate> fixedPoints, ArrayList<Coordinate> contour){
+	    boolean noChange = true;
+
+        for (int i = 0; i < variablePoints.size(); i++) {
+            // merge with close fixed points
+            for (Coordinate fixedPoint : fixedPoints) {
+                if(variablePoints.get(i).distance(fixedPoint) <= cellWidth / 4){
+                    variablePoints.set(i, fixedPoint);
+                }
+            }
+        }
+
+        // enforce minimum distance to other points
+        for (int i = 0; i < variablePoints.size(); i++) {
+            boolean skip = false;
+            // merge with close fixed points
+            for (Coordinate fixedPoint : fixedPoints) {
+                if(fixedPoint.equals(variablePoints.get(i))){
+                    skip = true;
+                    System.out.println("skipping");
+                    break;
+                }
+            }
+            if(skip) continue;
+
+            int prev = i;
+            int next = i;
+
+            while(variablePoints.get(i).equals(variablePoints.get(prev))){
+                prev--;
+                if(prev < 0){
+                    prev = variablePoints.size() + prev;
+                }
+            }
+
+            while(variablePoints.get(i).equals(variablePoints.get(next))){
+                next++;
+                if(next > variablePoints.size() - 1){
+                    next = 0;
+                }
+            }
+
+
+            int dist_prev_next = getDistanceOnContour(variablePoints.get(prev), variablePoints.get(next), contour);
+            int dist_prev = getDistanceOnContour(variablePoints.get(prev), variablePoints.get(i), contour);
+            int dist_next = getDistanceOnContour(variablePoints.get(i), variablePoints.get(next), contour);
+
+            if(dist_prev < cellWidth || dist_next < cellWidth){
+                if(dist_prev_next < cellWidth * 2){ // merge with closest
+                    int merge_with = prev;
+
+                    if(dist_prev > dist_next) {
+                        merge_with = next;
+                    }
+
+                    if(fixedPoints.contains(variablePoints.get(merge_with))){
+                        // move point to fixed point
+                        movePointsWithCoordinate(variablePoints, (Coordinate) variablePoints.get(i).clone(), contour.get(merge_with));
+                    } else {
+                        // move both half way
+                        int newIndex = getIndexPointHalfwayBetween(variablePoints.get(merge_with), variablePoints.get(i), contour);
+                        movePointsWithCoordinate(variablePoints, (Coordinate) variablePoints.get(i).clone(), contour.get(newIndex));
+                        movePointsWithCoordinate(variablePoints, (Coordinate) variablePoints.get(merge_with).clone(), contour.get(newIndex));
+                    }
+
+                    //System.out.println("change 1 detected");
+                    noChange = false;
+                } else { // enough space to move
+                    // move half way
+                    int oldIndex = indexOfCoordinate(contour, variablePoints.get(i));
+                    int newIndex = getIndexPointHalfwayBetween(variablePoints.get(prev), variablePoints.get(next), contour);
+                    movePointsWithCoordinate(variablePoints, (Coordinate) variablePoints.get(i).clone(), contour.get(newIndex));
+
+                    //System.out.println("change 2 detected");
+                    noChange = false;
+                }
+            }
+        }
+
+        System.out.println("return");
+        return noChange;
+    }
+
+
+    public ArrayList<Coordinate> getPointsOnNextContour(ArrayList<Coordinate> outerContourPoints, int outerContourIndex,
+                                                  ArrayList<ArrayList<Coordinate>> lines){
+
+        ArrayList<Coordinate> currentContour = lines.get(outerContourIndex);
+
+        //int nextContourIndex = getNextContour(outerContourIndex, lines, true);
+        int nextContourIndex = outerContourIndex + 1;
+        ArrayList<Coordinate> nextContour = lines.get(nextContourIndex);
+
+        ArrayList<Coordinate> corresponding = new ArrayList<Coordinate>();
+
+        for (int i = 0; i < outerContourPoints.size(); i++) {
+            int prev = i - 1;
+            int next = i + 1;
+
+            if(i == 0){
+                prev = outerContourPoints.size() - 1;
+            } else if(i == outerContourPoints.size() - 1){
+                next = 0;
+            }
+
+            // draw "line" between previous and next point
+            Vector2D helpVec = new Vector2D(outerContourPoints.get(prev), outerContourPoints.get(next));
+
+            // normalize vector, then scale by cellWidth
+            helpVec = helpVec.normalize().multiply(cellWidth);
+
+            // rotate vector by 90 degrees
+            helpVec = helpVec.rotateByQuarterCircle(1);
+
+            // determine point
+            Coordinate refPoint1 = helpVec.translate(outerContourPoints.get(i));
+            Coordinate refPoint2 = helpVec.multiply(-1).translate(outerContourPoints.get(i));
+
+            // find point on next contour that is closest
+            Coordinate closest1 = null;
+            Coordinate closest2 = null;
+            double dist1 = Double.MAX_VALUE;
+            double dist2 = Double.MAX_VALUE;
+
+            for (Coordinate coordinate : nextContour) {
+                if(coordinate.distance(refPoint1) < dist1){
+                    dist1 = coordinate.distance(refPoint1);
+                    closest1 = coordinate;
+                }
+                if(coordinate.distance(refPoint2) < dist2){
+                    dist2 = coordinate.distance(refPoint2);
+                    closest2 = coordinate;
+                }
+            }
+
+            if(dist1 < dist2){
+                corresponding.add(closest1);
+            } else {
+                corresponding.add(closest2);
+            }
+
+        }
+
+        return corresponding;
+    }
+
+    public void movePointsWithCoordinate(ArrayList<Coordinate> points, Coordinate from, Coordinate to){
+        for (int i = 0; i < points.size(); i++) {
+            if(points.get(i).equals(from)){
+                points.set(i, to);
+            }
+
+        }
+    }
+
+    public int getNextContour(int current_index, ArrayList<ArrayList<Coordinate>> lines, boolean inner){
+        ArrayList<Coordinate> currentContour = lines.get(current_index);
+
+        // get arbitrary point on outer contour
+        Coordinate refPoint = currentContour.get(0);
+
+        int nextIndex = -1;
+        boolean nextContourFound = false;
+
+        for (int i = 0; i < lines.size(); i++) {
+            if(i == current_index) continue;
+
+            for (Coordinate coordinate : lines.get(i)) {
+                if(coordinate.distance(refPoint) < cellWidth + 2){
+                    nextIndex = i;
+                    nextContourFound = true;
+                    break;
+                }
+            }
+
+            if ( nextContourFound ) break;
+        }
+
+        return nextIndex;
+    }
+
+    public boolean isPointContainedInContour(ArrayList<Coordinate> contour, Coordinate point){
+        int[] xCoords = new int[contour.size()];
+        int[] yCoords = new int[contour.size()];
+
+        for (int i = 0; i < contour.size(); i++) {
+            xCoords[i] = (int) contour.get(i).getX();
+            yCoords[i] = (int) contour.get(i).getY();
+        }
+
+        Polygon pol = new Polygon(xCoords, yCoords, contour.size());
+
+        return pol.contains(point.x, point.y);
+    }
+
+    public int indexOfCoordinate(ArrayList<Coordinate> coordinates, Coordinate coordinate){
+	    int index = -1;
+        for (int i = 0; i < coordinates.size(); i++) {
+            if(coordinates.get(i).equals(coordinate)){
+                index = i;
+                break;
+            }
+        }
+        return index;
+    }
+
 	/**
      * Transforms list of feature lines into set of 'cellWidth'-long edges.
      */
 	public void drawMesh(ArrayList<ArrayList<Coordinate>> featureLines){
-		
+
 		// place equally spaced points on contour line
 		ArrayList<Edge> edges = new ArrayList<Edge>();
 		// IMPLEMENT WITH coord.DISTANCE, NOT Count
-		
+
 //		for (ArrayList<Coordinate> ring : featureLines){
 //			float eqCellWidth = ring.size()/Math.round(ring.size()/cellWidth);
 //			int prev = 0;
@@ -212,8 +486,8 @@ public class MeshGenerator{
 //			}
 //			edges.add(new Edge(ring.get(0), ring.get(prev)));
 //		}
-//		
-		
+//
+
 		// connect all pixels
 		for (ArrayList<Coordinate> ring : featureLines){
 			for (int i = 1; i < ring.size(); i++){
@@ -221,11 +495,11 @@ public class MeshGenerator{
 			}
 			edges.add(new Edge(ring.get(0), ring.get(ring.size()-1)));
 		}
-		
+
 		SVGUtil svgwrite = new SVGUtil(edges, null);
         svgwrite.createSVG(System.getProperty("user.dir") + "/res/isophoteLines.svg");
 	}
-	
+
 	
     /**
      * Generate distance map on feature map.
