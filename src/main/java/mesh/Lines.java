@@ -32,8 +32,8 @@ public class Lines {
         ArrayList<Coordinate> visited = new ArrayList<Coordinate>();
         ArrayList<Coordinate> featureCoords = new ArrayList<Coordinate>();
 
-        for (int y = 5; y < height - 5; y++) {
-            for (int x = 5; x < width - 5; x++) {
+        for (int y = 10; y < height - 10; y++) {
+            for (int x = 10; x < width - 10; x++) {
                 if (map[x][y] == 255) {
                     featureCoords.add(new Coordinate(x, y));
                 }
