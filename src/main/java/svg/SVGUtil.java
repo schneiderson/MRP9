@@ -109,8 +109,8 @@ public class SVGUtil {
             String[] edgeColorArray = new String[]{"rgb(0,0,0)", "rgb(0,0,255)", "rgb(255,255,0)"};
             Iterator<String> colors = MathUtil.cycle(colorArray);
             String outlineColor = "black";
-            String strokeWidthWide = "8";
-            String strokeWidthNarrow = "4";
+            String strokeWidthWide = "4";
+            String strokeWidthNarrow = "2";
 
             // find largest x and y coordinates
             double x_max = 0, y_max = 0;
@@ -364,9 +364,11 @@ public class SVGUtil {
             Element svgRoot = doc.getDocumentElement();
             NodeList children = svgRoot.getChildNodes();
 
+
             // read lines from SVG
             for (int i = 0; i < children.getLength(); i++) {
                 if (children.item(i).getNodeName().equals("line")) {
+
                     NamedNodeMap attribs = children.item(i).getAttributes();
 
                     HashMap<String, Double> coor = new HashMap<>();
@@ -399,6 +401,78 @@ public class SVGUtil {
                     }
 
                 }
+
+                // also try to extract lines from paths
+                else if(children.item(i).getNodeName().equals("path")){
+                    NamedNodeMap attribs = children.item(i).getAttributes();
+                    String d_value = "";
+
+                    for(int j = 0; j < attribs.getLength(); j++){
+                        String name = attribs.item(j).getNodeName();
+                        if(name.equals("d")){
+                            d_value = attribs.item(j).getNodeValue();
+                        }
+                    }
+
+                    ArrayList<Edge> pathEdges = new ArrayList<Edge>();
+
+                    // check if path is linear
+                    if(d_value.indexOf("m") == 0){
+                        String[] split = d_value.split("\\s+");
+
+                        Coordinate start = null;
+                        Coordinate prev = null;
+
+                        for (int j = 0; j < split.length; j++) {
+                            if(split[j].matches("-?\\d+\\.?\\d*,-?\\d+\\.?\\d*")){
+                                double x = 0;
+                                double y = 0;
+
+                                x = Double.parseDouble(split[j].split(",")[0]);
+                                y = Double.parseDouble(split[j].split(",")[1]);
+
+                                if(start == null){
+                                    start = new Coordinate(x, y);
+                                    prev = new Coordinate(x, y);
+                                } else {
+                                    Coordinate cur = new Coordinate(prev.x + x, prev.y + y);
+                                    pathEdges.add(new Edge(prev, cur));
+                                    prev = cur;
+                                }
+                            }
+                        }
+
+                    } else if(d_value.indexOf("M") == 0){
+                        String[] split = d_value.split("\\s+");
+
+                        Coordinate start = null;
+
+                        for (int j = 0; j < split.length; j++) {
+                            if(split[j].matches("-?\\d+\\.?\\d*,-?\\d+\\.?\\d*")){
+                                double x = 0;
+                                double y = 0;
+
+                                x = Double.parseDouble(split[j].split(",")[0]);
+                                y = Double.parseDouble(split[j].split(",")[1]);
+
+                                if(start == null){
+                                    start = new Coordinate(x, y);
+                                } else {
+                                    Coordinate cur = new Coordinate(x, y);
+                                    pathEdges.add(new Edge(start, cur));
+                                }
+                            }
+                        }
+                    }
+
+
+                    for (Edge edge : pathEdges) {
+                        // filter out redundant edges
+                        if (!containsEdge(edge, distanceTolerance)) {
+                            edges.add(edge);
+                        }
+                    }
+                }
             }
 
             // merge close coordinates
@@ -412,4 +486,5 @@ public class SVGUtil {
             System.out.println(ex);
         }
     }
+
 }
